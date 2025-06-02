@@ -1,0 +1,47 @@
+# Ignore collection build artifacts
+*.tar.gz
+*.zip
+
+# Ignore build/ dist/ folders
+build/
+dist/
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg
+*.egg-info/
+
+# Ansible cache
+*.retry
+*.log
+
+# Secrets or local overrides
+~/.ansible/
+galaxy_token
+.secret
+*.env
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Tests / coverage (optional)
+.coverage
+coverage.xml
+.cache/
+.pytest_cache/
+.testinfra_cache/
+
+# Docs build (if using Sphinx or antsibull)
+docs/_build/
