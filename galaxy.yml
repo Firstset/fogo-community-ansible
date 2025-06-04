@@ -3,7 +3,7 @@
 # The namespace of the collection. This can be a company/brand/organization or product namespace under which all
 # content lives. May only contain alphanumeric lowercase characters and underscores. Namespaces cannot start with
 # underscores or numbers and cannot contain consecutive underscores
-namespace: gluckzhang # use my own github account for testing for now
+namespace: firstset # use my own github account for testing for now
 
 # The name of the collection. Has the same character restrictions as 'namespace'
 name: fogo_community
@@ -47,7 +47,7 @@ dependencies: {}
 repository: https://github.com/Firstset/fogo-community-ansible
 
 # The URL to any online docs
-documentation: https://galaxy.ansible.com/ui/repo/published/gluckzhang/fogo_community/docs/
+documentation: https://galaxy.ansible.com/ui/repo/published/firstset/fogo_community/docs/
 
 # The URL to the homepage of the collection/project
 homepage: https://github.com/Firstset/fogo-community-ansible

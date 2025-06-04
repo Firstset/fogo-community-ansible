@@ -1,0 +1,17 @@
+- name: Set policies related to validator using a firedancer client
+  community.general.ufw:
+    rule: allow
+    # firedancer_dynamic_port_range (e.g., 8900-9000) is used for firedancer config and the format is a bit different
+    port: "{{ firedancer_dynamic_port_range.replace('-', ':') }}"
+    proto: "{{ item }}"
+    comment: "validator-related ports"
+  loop:
+    - tcp
+    - udp
+
+# https://docs.firedancer.io/guide/configuring.html#options
+- name: Open gossip port required by Firedancer
+  community.general.ufw:
+    rule: allow
+    port: "{{ firedancer_gossip_port }}"
+    comment: "firedancer gossip port"

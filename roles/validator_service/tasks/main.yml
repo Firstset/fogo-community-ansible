@@ -1,0 +1,136 @@
+#SPDX-License-Identifier: MIT ---
+# tasks file for fogo_validator
+- name: Install the acl package that is needed by Ansible
+  become: true
+  apt:
+    name:
+      - acl
+    update_cache: yes
+
+- name: Bootstrap disks (which should be run only once)
+  include_tasks: bootstrap_disks.yml
+  when: bootstrap_disks
+
+- name: Conditionally include CPU performance tasks
+  include_tasks: cpu_performance_mode.yml
+  when: enable_cpu_performance_mode
+
+- name: Update UFW settings for Firedancer
+  include_tasks: ufw_settings.yml
+
+- name: Create a service user
+  become: true
+  user:
+    name: "{{ service_user }}"
+    shell: "/bin/bash"
+    create_home: true
+    password: "!"
+    state: present
+
+- name: Update repositories cache and install required libraries
+  become: true
+  apt:
+    name:
+      - build-essential
+      - clang
+      - git
+      - make
+      - pkgconf
+      - cmake
+      - libssl-dev
+      - libclang-dev
+      - libudev-dev
+      - protobuf-compiler
+    update_cache: yes
+
+- name: Build fogo firedancer client
+  vars:
+    temp_source_code_folder: "/home/{{ service_user }}/fogo-{{ validator_client_version }}"
+  block:
+    - name: Remove temporary source code folder {{ temp_source_code_folder }}
+      ansible.builtin.file:
+        path: "{{ temp_source_code_folder }}"
+        state: absent
+
+    - name: Recreate the temporary source code folder {{ temp_source_code_folder }}
+      ansible.builtin.file:
+        path: "{{ temp_source_code_folder }}"
+        state: directory
+
+    - name: Download the release tar file
+      get_url:
+        url: "https://static.fogo.io/fogo-{{ validator_client_version }}.tar.gz"
+        dest: /tmp
+        checksum: "sha1:{{ validator_client_tarfile_checksum }}"
+
+    - name: Extract the files from the tar file
+      ansible.builtin.unarchive:
+        src: "/tmp/fogo-{{ validator_client_version }}.tar.gz"
+        dest: "{{ temp_source_code_folder }}"
+        creates: "{{ temp_source_code_folder }}/fogo/deps.sh"
+        owner: "{{ service_user }}"
+        group: "{{ service_user }}"
+        remote_src: true
+
+    - name: Run deps.sh to install dependencies
+      become: true
+      become_user: "{{ service_user }}"
+      shell: yes y | ./deps.sh
+      args:
+        chdir: "{{ temp_source_code_folder }}/fogo"
+      ignore_errors: true
+
+    - name: Build fdctl binary
+      become: true
+      become_user: "{{ service_user }}"
+      shell: . ~/.profile && make -j fdctl
+      args:
+        chdir: "{{ temp_source_code_folder }}/fogo"
+        creates: "{{ temp_source_code_folder }}/fogo/build/native/gcc/bin/fdctl"
+      register: make_result
+      retries: 2
+      until: make_result.rc == 0
+      delay: 5
+
+    - name: Copy fdctl binary to /usr/local/bin
+      become: true
+      ansible.builtin.copy:
+        src: "{{ temp_source_code_folder }}/fogo/build/native/gcc/bin/fdctl"
+        dest: "/usr/local/bin/fdctl"
+        remote_src: true
+        mode: "0755"
+
+- name: Generate firedancer config from the template
+  template:
+    src: firedancer_config_template.toml.j2
+    dest: "{{ firedancer_config_path }}"
+    mode: "0644"
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+
+- name: Check the existence of the key files
+  block:
+    - name: Check if the identity keypair exists
+      stat:
+        path: "{{ identity_path }}"
+      register: identity_keypair_stat
+
+    - name: "{{ identity_path }} does not exist, create a new one for now"
+      become: true
+      become_user: "{{ service_user }}"
+      shell: "fdctl keys new identity --config {{ firedancer_config_path }}"
+      when: not identity_keypair_stat.stat.exists
+
+- name: Create the systemd service for fogo
+  become: true
+  template:
+    src: firedancer_systemd.j2
+    dest: "/etc/systemd/system/fogo-validator.service"
+    mode: "0644"
+
+- name: Enable and start fogo validator
+  systemd_service:
+    name: fogo-validator
+    daemon_reload: true
+    enabled: true
+    state: started

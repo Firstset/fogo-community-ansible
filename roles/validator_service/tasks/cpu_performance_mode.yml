@@ -1,0 +1,53 @@
+---
+- name: Install required packages (Debian-based)
+  ansible.builtin.package:
+    name:
+      - cpufrequtils
+      - linux-tools-common
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Check available CPU governors
+  ansible.builtin.command: cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors
+  register: governor_output
+  changed_when: false
+  check_mode: false
+  failed_when: governor_output.rc != 0
+
+- name: Fail if performance governor is not supported
+  ansible.builtin.fail:
+    msg: "'performance' CPU governor is not supported on this host."
+  when: "'performance' not in governor_output.stdout"
+
+- name: Set CPU governor to performance immediately
+  ansible.builtin.shell: |
+    for CPUFREQ in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+      echo performance > "$CPUFREQ"
+    done
+  args:
+    executable: /bin/bash
+
+- name: Create systemd service to persist performance mode
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/cpufreq-performance.service
+    content: |
+      [Unit]
+      Description=Set CPU governor to performance
+      After=multi-user.target
+
+      [Service]
+      Type=oneshot
+      ExecStart=/bin/bash -c 'for CPU in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo performance > "$CPU"; done'
+
+      [Install]
+      WantedBy=multi-user.target
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Enable and start cpufreq-performance systemd service
+  systemd_service:
+    name: cpufreq-performance.service
+    daemon_reload: true
+    enabled: true
+    state: started

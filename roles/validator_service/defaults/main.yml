@@ -1,0 +1,22 @@
+#SPDX-License-Identifier: MIT
+---
+# defaults file for fogo_validator
+bootstrap_disks: false
+enable_cpu_performance_mode: true
+service_user: fogo
+validator_client_version: v5.0.0
+validator_client_tarfile_checksum: fe4126739790f6c90eaec59c81ad99131037454c
+firedancer_config_path: "/home/{{ service_user }}/firedancer-config.toml"
+identity_path: "/home/{{ service_user }}/unstaked-identity.json"
+
+# The OS may be installed on the ledger disk, though testing has shown better performance with the ledger on its own disk
+# Accounts and ledger can be stored on the same disk, however due to high IOPS, this is not recommended
+# ref: https://solanahcl.org/
+ledger_path: "/home/{{ service_user }}/ledger"
+
+# Absolute directory path to place the accounts database in.
+# If this is empty, it will default to the `accounts` subdirectory of the ledger `path` above.
+accounts_path: "/mnt/accounts"
+
+firedancer_gossip_port: 8001
+firedancer_dynamic_port_range: 8901-9000

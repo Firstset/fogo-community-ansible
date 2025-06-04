@@ -1,0 +1,122 @@
+- name: Detect available disks
+  become: true
+  shell: lsblk -J -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT
+  register: available_disks
+  check_mode: false
+
+- name: Parse disk information
+  set_fact:
+    disk_info: "{{ available_disks.stdout | from_json }}"
+
+- name: Find unused disks for ledger and account
+  set_fact:
+    unused_disks: "{{ disk_info.blockdevices |
+      selectattr('children', 'undefined') |
+      selectattr('fstype', 'none') |
+      list }}"
+
+- name: Display available unused disks
+  debug:
+    msg:
+      - "Found {{ unused_disks | length }} disk(s) that can be used by the validator"
+      - "{{ unused_disks }}"
+
+- name: Set account disk if at least one is available
+  set_fact:
+    account_disk: "/dev/{{ unused_disks[0].name }}"
+  when: unused_disks | length >= 1
+  check_mode: false
+
+- name: Set ledger disk if at least two are available
+  set_fact:
+    ledger_disk: "/dev/{{ unused_disks[1].name }}"
+  when: unused_disks | length >= 2
+  check_mode: false
+
+- name: Create partition on account disk
+  become: true
+  community.general.parted:
+    device: "{{ account_disk }}"
+    number: 1
+    state: present
+    label: gpt
+    part_end: "100%"
+  when: account_disk is defined
+
+- name: Create partition on ledger disk
+  become: true
+  community.general.parted:
+    device: "{{ ledger_disk }}"
+    number: 1
+    state: present
+    label: gpt
+    part_end: "100%"
+  when: ledger_disk is defined
+
+- name: Format account disk partition
+  become: true
+  filesystem:
+    fstype: ext4
+    dev: "{{ account_disk }}p1"
+  when: account_disk is defined
+
+- name: Format ledger disk partition
+  become: true
+  filesystem:
+    fstype: ext4
+    dev: "{{ ledger_disk }}p1"
+  when: ledger_disk is defined
+
+- name: Create mount directories
+  become: true
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "/mnt/ledger"
+    - "/mnt/accounts"
+
+- name: Mount account partition
+  become: true
+  mount:
+    path: "/mnt/accounts"
+    src: "{{ account_disk }}p1"
+    fstype: ext4
+    opts: defaults,noatime
+    state: mounted
+  when: account_disk is defined
+
+- name: Mount ledger partition
+  become: true
+  mount:
+    path: "/mnt/ledger"
+    src: "{{ ledger_disk }}p1"
+    fstype: ext4
+    opts: defaults,noatime
+    state: mounted
+  when: ledger_disk is defined
+
+- name: Create folders in mounted directories
+  become: true
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+    mode: "0755"
+  loop:
+    - "/mnt/ledger"
+    - "/mnt/accounts"
+
+- name: Set correct ownership for mounted directories
+  become: true
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+    recurse: yes
+  loop:
+    - "/mnt/ledger"
+    - "/mnt/accounts"
