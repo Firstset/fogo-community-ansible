@@ -1,0 +1,61 @@
+- name: Remove temporary source code folder {{ temp_source_code_folder }}
+  ansible.builtin.file:
+    path: "{{ temp_source_code_folder }}"
+    state: absent
+
+- name: Recreate the temporary source code folder {{ temp_source_code_folder }}
+  ansible.builtin.file:
+    path: "{{ temp_source_code_folder }}"
+    state: directory
+
+- name: Download the release tar file
+  get_url:
+    url: "https://static.fogo.io/fogo-{{ validator_client_version }}.tar.gz"
+    dest: /tmp
+    checksum: "sha1:{{ validator_client_tarfile_checksum }}"
+
+- name: Extract the files from the tar file
+  ansible.builtin.unarchive:
+    src: "/tmp/fogo-{{ validator_client_version }}.tar.gz"
+    dest: "{{ temp_source_code_folder }}"
+    creates: "{{ temp_source_code_folder }}/fogo/deps.sh"
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+    remote_src: true
+
+- name: Run deps.sh to install dependencies
+  become: true
+  become_user: "{{ service_user }}"
+  shell: yes y | ./deps.sh
+  args:
+    chdir: "{{ temp_source_code_folder }}/fogo"
+  ignore_errors: true
+
+- name: Build fdctl binary
+  become: true
+  become_user: "{{ service_user }}"
+  shell: . ~/.profile && make -j fdctl
+  args:
+    chdir: "{{ temp_source_code_folder }}/fogo"
+    creates: "{{ temp_source_code_folder }}/fogo/build/native/gcc/bin/fdctl"
+  register: make_result
+  retries: 2
+  until: make_result.rc == 0
+  delay: 5
+
+- name: Stop fogo validator as this is an upgrade task
+  systemd_service:
+    name: fogo-validator
+    daemon_reload: true
+    state: stopped
+  when: upgrade_only
+
+- name: Copy fdctl binary to /usr/local/bin
+  become: true
+  ansible.builtin.copy:
+    src: "{{ temp_source_code_folder }}/fogo/build/native/gcc/bin/fdctl"
+    dest: "/usr/local/bin/fdctl"
+    remote_src: true
+    mode: "0755"
+  notify:
+    - Restart fogo validator service

@@ -4,8 +4,8 @@
 bootstrap_disks: false
 enable_cpu_performance_mode: true
 service_user: fogo
-validator_client_version: v5.0.0
-validator_client_tarfile_checksum: fe4126739790f6c90eaec59c81ad99131037454c
+validator_client_version: v6.0.0
+validator_client_tarfile_checksum: 817533105183734d5f4dffb4f0b11b0de2adf38b
 firedancer_config_path: "/home/{{ service_user }}/firedancer-config.toml"
 identity_path: "/home/{{ service_user }}/unstaked-identity.json"
 
@@ -20,3 +20,6 @@ accounts_path: "/mnt/accounts"
 
 firedancer_gossip_port: 8001
 firedancer_dynamic_port_range: 8901-9000
+
+# If `upgrade_only` is set to true, the role only builds and replaces the binaries and then restarts the service
+upgrade_only: false
