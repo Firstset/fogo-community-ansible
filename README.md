@@ -145,7 +145,7 @@ ansible-playbook site.yml --tags config --ask-become-pass
 
 ## Contributing
 
-We welcome contributions! Please see our [contribution guidelines](https://github.com/Firstset/fogo-community-ansible/blob/main/CONTRIBUTING.md) and feel free to:
+We welcome contributions! Please feel free to:
 
 - Report bugs or request features via [GitHub Issues](https://github.com/Firstset/fogo-community-ansible/issues)
 - Submit pull requests for improvements
@@ -160,9 +160,3 @@ We welcome contributions! Please see our [contribution guidelines](https://githu
 ## License
 
 This collection is licensed under the [MIT License](LICENSE).
-
-## Authors
-
-Maintained by [Firstset](https://www.firstset.xyz/):
-- Long Zhang <long@firstset.xyz>
-- Bernat Fages <bernat@firstset.xyz>
