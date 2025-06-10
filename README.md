@@ -106,6 +106,7 @@ All configurable variables are documented in [`roles/validator_service/defaults/
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `validator_client_version` | `v6.0.0` | FOGO release version to install |
+| `validator_client_tarfile_checksum` | `817533105183734d5f4dffb4f0b11b0de2adf38b` | The SHA1 checksum of the source code tar file provided by FOGO [here](https://docs.fogo.io/releases.html) |
 | `service_user` | `fogo` | System user for the validator service |
 | `firedancer_gossip_port` | `8001` | Port for gossip network communication |
 | `bootstrap_disks` | `false` | Whether to detect and format additional disks |
@@ -124,7 +125,7 @@ ansible-playbook site.yml -e "bootstrap_disks=true" --ask-become-pass
 
 ```bash
 # Upgrade to new version
-ansible-playbook site.yml -e "upgrade_only=true validator_client_version=v6.1.0" --ask-become-pass
+ansible-playbook site.yml -e "upgrade_only=true validator_client_version=v6.1.0 validator_client_tarfile_checksum=817533105183734d5f4dffb4f0b11b0de2adf38b" --ask-become-pass
 ```
 
 ### Configuration Updates
