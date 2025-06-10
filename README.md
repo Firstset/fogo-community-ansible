@@ -75,6 +75,7 @@ Override default settings by setting variables:
   become: true
   vars:
     validator_client_version: v6.0.0
+    validator_client_tarfile_checksum: 817533105183734d5f4dffb4f0b11b0de2adf38b
     firedancer_gossip_port: 8001
     accounts_path: "/fast-storage/accounts"
     bootstrap_disks: true
