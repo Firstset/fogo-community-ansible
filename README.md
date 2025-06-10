@@ -128,13 +128,6 @@ ansible-playbook site.yml -e "bootstrap_disks=true" --ask-become-pass
 ansible-playbook site.yml -e "upgrade_only=true validator_client_version=v6.1.0 validator_client_tarfile_checksum=817533105183734d5f4dffb4f0b11b0de2adf38b" --ask-become-pass
 ```
 
-### Configuration Updates
-
-```bash
-# Update configuration without rebuilding
-ansible-playbook site.yml --tags config --ask-become-pass
-```
-
 ## Repository Structure
 
 ```
