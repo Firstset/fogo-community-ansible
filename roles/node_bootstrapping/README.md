@@ -34,6 +34,8 @@ This role performs the following tasks:
 - Installs Prometheus node exporter for monitoring
 - Whitelists Prometheus server for metrics collection
 
+Here's an example for a playbook that uses this role:
+
 ```yml
 - name: Bootstrap Fogo Validator Node
   hosts: all
@@ -51,6 +53,8 @@ This role performs the following tasks:
 ```
 
 ### Basic setup with minimal configuration
+
+Or the simplest playbook:
 
 ```yml
 - name: Basic Node Bootstrapping
