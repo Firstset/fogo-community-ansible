@@ -11,6 +11,15 @@ FOGO is a Solana validator client built on Firedancer, designed for high perform
 
 ## Features
 
+### Note bootstrapping
+
+- **SSH security hardening** - Creates sudo users with key authentication and disables root/password login
+- **Enhanced security configuration** - Changes default SSH port and configures fail2ban for intrusion prevention
+- **Firewall management** - Sets up UFW with default deny policy and security rules
+- **Monitoring integration** - Installs Prometheus node exporter with server whitelisting
+
+### Validator service deployment
+
 - **Automated validator deployment** - Complete setup from system configuration to service deployment
 - **Performance optimization** - CPU performance mode configuration and system tuning
 - **Security hardening** - UFW firewall configuration and service user management
@@ -90,6 +99,7 @@ Override default settings by setting variables:
 The main role for deploying and managing FOGO validators. See the [role documentation](roles/validator_service/README.md) for detailed configuration options and examples.
 
 **Key tasks performed:**
+
 - System dependencies installation
 - Optional disk bootstrapping and formatting
 - CPU performance mode configuration
@@ -103,14 +113,14 @@ The main role for deploying and managing FOGO validators. See the [role document
 
 All configurable variables are documented in [`roles/validator_service/defaults/main.yml`](roles/validator_service/defaults/main.yml). Key variables include:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `validator_client_version` | `v6.0.0` | FOGO release version to install |
+| Variable                            | Default                                    | Description                                                                                               |
+| ----------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `validator_client_version`          | `v6.0.0`                                   | FOGO release version to install                                                                           |
 | `validator_client_tarfile_checksum` | `817533105183734d5f4dffb4f0b11b0de2adf38b` | The SHA1 checksum of the source code tar file provided by FOGO [here](https://docs.fogo.io/releases.html) |
-| `service_user` | `fogo` | System user for the validator service |
-| `firedancer_gossip_port` | `8001` | Port for gossip network communication |
-| `bootstrap_disks` | `false` | Whether to detect and format additional disks |
-| `upgrade_only` | `false` | Only upgrade binaries without full setup |
+| `service_user`                      | `fogo`                                     | System user for the validator service                                                                     |
+| `firedancer_gossip_port`            | `8001`                                     | Port for gossip network communication                                                                     |
+| `bootstrap_disks`                   | `false`                                    | Whether to detect and format additional disks                                                             |
+| `upgrade_only`                      | `false`                                    | Only upgrade binaries without full setup                                                                  |
 
 ## Common Usage Patterns
 
