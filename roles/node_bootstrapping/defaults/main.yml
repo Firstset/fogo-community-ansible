@@ -1,0 +1,10 @@
+#SPDX-License-Identifier: MIT
+---
+# defaults file for node_bootstrapping
+
+# the Prometheus server's IP address that should be whitelisted
+prometheus_node_ip: null
+# whether enable UFW automatically after running the tasks
+enable_ufw: false
+# switch to use the following port for SSH connections instead of port 22
+ssh_port_number: 156
