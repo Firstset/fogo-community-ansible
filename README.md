@@ -11,7 +11,7 @@ FOGO is a Solana validator client built on Firedancer, designed for high perform
 
 ## Features
 
-### Note bootstrapping
+### Node bootstrapping
 
 - **SSH security hardening** - Creates sudo users with key authentication and disables root/password login
 - **Enhanced security configuration** - Changes default SSH port and configures fail2ban for intrusion prevention
