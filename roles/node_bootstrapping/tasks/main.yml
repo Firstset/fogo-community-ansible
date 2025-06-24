@@ -1,0 +1,21 @@
+#SPDX-License-Identifier: MIT
+---
+# tasks file for node_bootstrapping
+- name: Sudo user management
+  include_tasks: sudo_user_management.yml
+
+- name: Install Prometheus node exporter
+  ansible.builtin.include_role:
+    name: prometheus.prometheus.node_exporter
+
+- name: Whitelist Prometheus server IP for scraping
+  community.general.ufw:
+    rule: allow
+    direction: in
+    src: "{{ prometheus_node_ip }}"
+    comment: prometheus scrape
+    to_port: 9100
+  when: prometheus_node_ip is not none
+
+- name: Hardening node's security
+  include_tasks: security_hardening.yml

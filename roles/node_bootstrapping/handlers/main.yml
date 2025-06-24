@@ -1,0 +1,18 @@
+#SPDX-License-Identifier: MIT
+---
+# handlers file for node_bootstrapping
+- name: Restart SSH
+  service:
+    name: ssh
+    state: restarted
+
+- name: Restart ssh.socket
+  systemd_service:
+    name: ssh.socket
+    daemon_reload: true
+    state: restarted
+
+- name: restart fail2ban
+  service:
+    name: fail2ban
+    state: restarted

@@ -1,0 +1,30 @@
+- name: Create a sudo user with forced password change on first login
+  include_tasks: create_sudo_users.yml
+  vars:
+    sudo_username: "{{ item.key }}"
+    sudo_user_pubkey: "{{ item.value }}"
+  with_dict: "{{ sudo_users }}"
+
+- name: Only allow these sudo users to ssh
+  become: true
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^AllowUsers"
+    line: "AllowUsers {{ sudo_users.keys() | join(' ') }}"
+    state: present
+    create: yes
+  when: sudo_users is defined
+
+- name: Ensure root login is disabled in SSH config since we have created sudo users
+  become: true
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?PermitRootLogin"
+    line: "PermitRootLogin no"
+    state: present
+  when: sudo_users is defined
+
+- name: Restart SSH service
+  service:
+    name: ssh
+    state: restarted

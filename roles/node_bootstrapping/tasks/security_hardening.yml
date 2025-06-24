@@ -1,0 +1,135 @@
+- name: Update repositories cache and install fail2ban
+  become: true
+  apt:
+    name: fail2ban
+    update_cache: yes
+
+- name: Ensure fail2ban is running and enabled
+  become: true
+  systemd:
+    name: fail2ban
+    state: started
+    enabled: yes
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Install ufw
+  become: true
+  package:
+    name: ufw
+    state: present
+
+- name: Check wether enabling UFW would be considered as changed, meaning that currently ufw is not active
+  become: true
+  check_mode: true
+  community.general.ufw:
+    state: enabled
+  register: ufw_enable_check
+
+- name: Debug message for UFW check
+  debug:
+    msg: >
+      {% if ufw_enable_check.changed %}
+        UFW is not enabled, proceeding with adding necessary rules (keep UFW disabled by default)
+        You can use `enable_ufw=true` to enable UFW besides updating the rules.
+      {% else %}
+        Currently UFW is already enabled, proceeding with adding necessary rules.
+      {% endif %}
+
+- name: Set ufw default policies
+  become: true
+  community.general.ufw:
+    direction: "{{ item.direction }}"
+    policy: "{{ item.policy }}"
+  loop:
+    - { direction: incoming, policy: deny }
+    - { direction: outgoing, policy: allow }
+
+- name: Checking ssh_port_number
+  debug:
+    msg:
+      - "The SSH connection port is configured with var ssh_port_number (default value 22)"
+      - "Value for this host: {{ ssh_port_number }}"
+
+- name: Allow SSH connections
+  become: true
+  community.general.ufw:
+    rule: allow
+    port: "{{ ssh_port_number }}"
+    proto: tcp
+    comment: ssh
+
+- name: Enable ufw
+  become: true
+  community.general.ufw:
+    state: enabled
+  when: enable_ufw
+
+- name: Disable SSH password authentication
+  become: true
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?PasswordAuthentication"
+    line: "PasswordAuthentication no"
+    state: present
+  notify: Restart SSH
+
+- name: Change sshd listening port if ssh_port_number is not 22, and restart SSH
+  become: true
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?Port "
+    line: "Port {{ ssh_port_number }}"
+    state: present
+  notify: Restart SSH
+  when: ssh_port_number != 22
+
+- name: Update ssh.socket config to listen on the configured port if it exists
+  become: true
+  lineinfile:
+    path: /usr/lib/systemd/system/ssh.socket
+    regexp: "^ListenStream="
+    line: "ListenStream={{ ssh_port_number }}"
+    state: present
+  register: update_ssh_socket_config_result
+  when: ssh_port_number != 22
+
+- name: Check if ssh.socket exists
+  command: systemctl is-active ssh.socket
+  register: ssh_socket_status
+  check_mode: false
+  ignore_errors: true
+
+- name: Restart ssh.socket
+  become: true
+  debug:
+    msg:
+      - "ssh.socket service is active thus it needs to be restarted"
+  notify: Restart ssh.socket
+  when: ssh_socket_status.rc == 0 and update_ssh_socket_config_result.changed
+  changed_when: true
+
+- name: Override Fail2Ban SSH jail when port is non-standard
+  become: true
+  ansible.builtin.template:
+    src: sshd-jail.conf.j2
+    dest: /etc/fail2ban/jail.d/10-sshd-port.conf
+    owner: root
+    group: root
+    mode: '0644'
+  when: ssh_port_number != 22
+  notify: restart fail2ban
+
+- name: Remove Fail2Ban custom jail if SSH port changed back to 22
+  become: true
+  ansible.builtin.file:
+    path: /etc/fail2ban/jail.d/10-sshd-port.conf
+    state: absent
+  when: ssh_port_number == 22
+  notify: restart fail2ban
+
+- name: Reminder
+  debug:
+    msg:
+      - "Please note that SSH port has been changed to {{ ssh_port_number }}."
+      - "Don't forget to update your `ssh_config` file."
+  when: ssh_port_number != 22
