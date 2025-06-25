@@ -208,6 +208,8 @@ Then the following command can be used for only updating the configuration file 
 ansible-playbook site.yml -t update_config --ask-become-pass
 ```
 
+The tag `update_config` also works for overriding the systemd definition file. The corresponding variable is `firedancer_systemd_template_path` which defaults to `templates/firedancer_systemd.j2`.
+
 ## Repository Structure
 
 ```

@@ -81,6 +81,8 @@
     src: "{{ firedancer_systemd_template_path }}"
     dest: "/etc/systemd/system/fogo-validator.service"
     mode: "0644"
+  tags:
+    - update_config
 
 - name: Enable and start fogo validator
   systemd_service:
@@ -88,3 +90,5 @@
     daemon_reload: true
     enabled: true
     state: started
+  tags:
+    - update_config
