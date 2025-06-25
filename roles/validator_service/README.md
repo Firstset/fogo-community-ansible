@@ -45,19 +45,41 @@ Building Firedancer binary is included by default. The version and the release c
   hosts: all
   become: true
 +  vars:
-+    # use v6.0.0 as an example here
-+    validator_client_version: v6.0.0
-+    validator_client_tarfile_checksum: 817533105183734d5f4dffb4f0b11b0de2adf38b
++    # use v7.0.0 as an example here
++    validator_client_version: v7.0.0
++    validator_client_tarfile_checksum: 7d2ca6e4e47bf31ffd1c4e04634895acd820984d
 
   roles:
     - firstset.fogo_community.validator_service
 ```
 
-Then specify `upgrade_only=true` when you run the playbook:
+Then specify the tag `update_binary` when you run the playbook:
 
 ```bash
-ansible-playbook -i inventory/fogo.yml playbooks/fogo.yml --ask-become-pass -e "upgrade_only=true"
+ansible-playbook -i inventory/fogo.yml playbooks/fogo.yml --ask-become-pass -t update_binary
 ```
+
+### Update FOGO Firedancer Configuration
+
+The role already includes a FOGO firedancer config template that you can find in `templates/firedancer_config_template.toml.j2`. If you need to override the config, first create your own template file and set the variable `firedancer_config_template_path` to point to your custom template. For example:
+
+```yaml
+- name: Deploy FOGO Validator
+  hosts: validator_nodes
+  become: true
+  vars:
+    firedancer_config_template_path: "./templates/my_fogo_service_config.toml.j2"
+  roles:
+    - firstset.fogo_community.validator_service
+```
+
+Then the following command can be used for only updating the configuration file and restarting the service:
+
+```bash
+ansible-playbook site.yml -t update_config --ask-become-pass
+```
+
+The tag `update_config` also works for overriding the systemd definition file. The corresponding variable is `firedancer_systemd_template_path` which defaults to `templates/firedancer_systemd.j2`.
 
 ## License
 

@@ -54,6 +54,34 @@ ansible-galaxy collection install firstset-fogo_community-*.tar.gz
 
 ## Quick Start
 
+### Node Bootstrapping
+
+Create a playbook to bootstrap the node, including sudo user creation, SSH hardening, Node Exporter installation, and firewall setup:
+
+```yaml
+- name: Bootstrap Fogo Validator Node
+  hosts: all
+  become: true
+  vars:
+    sudo_users:
+      admin1: "ssh-rsa AAAAB3NzaC1yc2E... user1@example.com"
+      admin2: "ssh-rsa AAAAB3NzaC1yc2E... user2@example.com"
+    prometheus_node_ip: "10.0.1.100"
+    enable_ufw: true
+    ssh_port_number: 156
+
+  roles:
+    - firstset.fogo_community.node_bootstrapping
+```
+
+Run the playbook:
+
+```bash
+ansible-playbook -i inventory bootstrap-node.yml --ask-become-pass
+```
+
+In this example, we change the SSH port to `156`, so don't forget to update your SSH client configuration accordingly. The `prometheus_node_ip` should be set to the IP address of your Prometheus server for metrics collection.
+
 ### Basic Validator Setup
 
 Create a playbook to deploy a FOGO validator:
@@ -70,7 +98,7 @@ Create a playbook to deploy a FOGO validator:
 Run the playbook:
 
 ```bash
-ansible-playbook -i inventory site.yml --ask-become-pass
+ansible-playbook -i inventory deploy-service.yml --ask-become-pass
 ```
 
 ### Advanced Configuration
@@ -94,6 +122,29 @@ Override default settings by setting variables:
 
 ## Included Roles
 
+### `node_bootstrapping`
+
+The main role for bootstrapping a FOGO validator node. See the [role documentation](roles/node_bootstrapping/README.md) for detailed configuration options and examples.
+
+**Key tasks performed:**
+
+- Sudo user creation with SSH key authentication
+- SSH security hardening (disable root/password login)
+- SSH port configuration for enhanced security
+- Fail2ban installation and configuration
+- UFW firewall setup with default deny policy
+- Prometheus node exporter installation
+- Network security rules and monitoring integration
+
+**Role variables:**
+
+| Variable             | Default | Description                                                   |
+| -------------------- | ------- | ------------------------------------------------------------- |
+| `prometheus_node_ip` | `null`  | IP address of the Prometheus server to whitelist for metrics  |
+| `enable_ufw`         | `false` | Whether to enable UFW firewall after configuration            |
+| `ssh_port_number`    | `156`   | SSH port to use instead of default port 22                    |
+| `sudo_users`         | `{}`    | Dictionary of sudo users to create with their SSH public keys |
+
 ### `validator_service`
 
 The main role for deploying and managing FOGO validators. See the [role documentation](roles/validator_service/README.md) for detailed configuration options and examples.
@@ -109,39 +160,61 @@ The main role for deploying and managing FOGO validators. See the [role document
 - Configuration file generation
 - Systemd service setup and activation
 
-## Configuration
-
 All configurable variables are documented in [`roles/validator_service/defaults/main.yml`](roles/validator_service/defaults/main.yml). Key variables include:
 
 | Variable                            | Default                                    | Description                                                                                               |
 | ----------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| `validator_client_version`          | `v6.0.0`                                   | FOGO release version to install                                                                           |
-| `validator_client_tarfile_checksum` | `817533105183734d5f4dffb4f0b11b0de2adf38b` | The SHA1 checksum of the source code tar file provided by FOGO [here](https://docs.fogo.io/releases.html) |
+| `validator_client_version`          | `v7.0.0`                                   | FOGO release version to install                                                                           |
+| `validator_client_tarfile_checksum` | `7d2ca6e4e47bf31ffd1c4e04634895acd820984d` | The SHA1 checksum of the source code tar file provided by FOGO [here](https://docs.fogo.io/releases.html) |
 | `service_user`                      | `fogo`                                     | System user for the validator service                                                                     |
 | `firedancer_gossip_port`            | `8001`                                     | Port for gossip network communication                                                                     |
 | `bootstrap_disks`                   | `false`                                    | Whether to detect and format additional disks                                                             |
-| `upgrade_only`                      | `false`                                    | Only upgrade binaries without full setup                                                                  |
 
-## Common Usage Patterns
+The role also provides two tags `update_binary` and `update_config` for filtering the tasks during execution. Use these tags to update the Firedancer binary or configuration without re-running the entire playbook. Check the common use cases below.
 
-### Initial Deployment
+#### Common Usage Patterns
+
+##### Initial Deployment
 
 ```bash
 # Full setup including disk bootstrapping
 ansible-playbook site.yml -e "bootstrap_disks=true" --ask-become-pass
 ```
 
-### Binary Upgrades
+##### Binary Upgrades
 
 ```bash
 # Upgrade to new version
-ansible-playbook site.yml -e "upgrade_only=true validator_client_version=v6.1.0 validator_client_tarfile_checksum=817533105183734d5f4dffb4f0b11b0de2adf38b" --ask-become-pass
+ansible-playbook site.yml -t update_binary -e "validator_client_version=v7.0.0 validator_client_tarfile_checksum=7d2ca6e4e47bf31ffd1c4e04634895acd820984d" --ask-become-pass
 ```
+
+##### Config Updates
+
+The role already includes a FOGO firedancer config template that you can find in `templates/firedancer_config_template.toml.j2`. If you need to override the config, first create your own template file and set the variable `firedancer_config_template_path` to point to your custom template. For example:
+
+```yaml
+- name: Deploy FOGO Validator
+  hosts: validator_nodes
+  become: true
+  vars:
+    firedancer_config_template_path: "./templates/my_fogo_service_config.toml.j2"
+  roles:
+    - firstset.fogo_community.validator_service
+```
+
+Then the following command can be used for only updating the configuration file and restarting the service:
+
+```bash
+ansible-playbook site.yml -t update_config --ask-become-pass
+```
+
+The tag `update_config` also works for overriding the systemd definition file. The corresponding variable is `firedancer_systemd_template_path` which defaults to `templates/firedancer_systemd.j2`.
 
 ## Repository Structure
 
 ```
 ├── roles/
+│   ├── node_bootstrapping/    # Node bootstrapping role
 │   └── validator_service/     # Main validator deployment role
 ├── galaxy.yml                 # Collection metadata
 ├── LICENSE                    # MIT license
