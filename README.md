@@ -54,6 +54,34 @@ ansible-galaxy collection install firstset-fogo_community-*.tar.gz
 
 ## Quick Start
 
+### Node Bootstrapping
+
+Create a playbook to bootstrap the node, including sudo user creation, SSH hardening, Node Exporter installation, and firewall setup:
+
+```yaml
+- name: Bootstrap Fogo Validator Node
+  hosts: all
+  become: true
+  vars:
+    sudo_users:
+      admin1: "ssh-rsa AAAAB3NzaC1yc2E... user1@example.com"
+      admin2: "ssh-rsa AAAAB3NzaC1yc2E... user2@example.com"
+    prometheus_node_ip: "10.0.1.100"
+    enable_ufw: true
+    ssh_port_number: 156
+
+  roles:
+    - firstset.fogo_community.node_bootstrapping
+```
+
+Run the playbook:
+
+```bash
+ansible-playbook -i inventory bootstrap-node.yml --ask-become-pass
+```
+
+In this example, we change the SSH port to `156`, so don't forget to update your SSH client configuration accordingly. The `prometheus_node_ip` should be set to the IP address of your Prometheus server for metrics collection.
+
 ### Basic Validator Setup
 
 Create a playbook to deploy a FOGO validator:
@@ -70,7 +98,7 @@ Create a playbook to deploy a FOGO validator:
 Run the playbook:
 
 ```bash
-ansible-playbook -i inventory site.yml --ask-become-pass
+ansible-playbook -i inventory deploy-service.yml --ask-become-pass
 ```
 
 ### Advanced Configuration
