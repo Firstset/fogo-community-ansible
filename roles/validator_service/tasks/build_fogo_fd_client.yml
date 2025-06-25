@@ -2,17 +2,23 @@
   ansible.builtin.file:
     path: "{{ temp_source_code_folder }}"
     state: absent
+  tags:
+    - update_binary
 
 - name: Recreate the temporary source code folder {{ temp_source_code_folder }}
   ansible.builtin.file:
     path: "{{ temp_source_code_folder }}"
     state: directory
+  tags:
+    - update_binary
 
 - name: Download the release tar file
   get_url:
     url: "https://static.fogo.io/fogo-{{ validator_client_version }}.tar.gz"
     dest: /tmp
     checksum: "sha1:{{ validator_client_tarfile_checksum }}"
+  tags:
+    - update_binary
 
 - name: Extract the files from the tar file
   ansible.builtin.unarchive:
@@ -22,6 +28,8 @@
     owner: "{{ service_user }}"
     group: "{{ service_user }}"
     remote_src: true
+  tags:
+    - update_binary
 
 - name: Run deps.sh to install dependencies
   become: true
@@ -30,6 +38,8 @@
   args:
     chdir: "{{ temp_source_code_folder }}/fogo"
   ignore_errors: true
+  tags:
+    - update_binary
 
 - name: Build fdctl binary
   become: true
@@ -42,13 +52,17 @@
   retries: 2
   until: make_result.rc == 0
   delay: 5
+  tags:
+    - update_binary
 
 - name: Stop fogo validator as this is an upgrade task
   systemd_service:
     name: fogo-validator
     daemon_reload: true
     state: stopped
-  when: upgrade_only
+  tags:
+    - never
+    - update_binary
 
 - name: Copy fdctl binary to /usr/local/bin
   become: true
@@ -59,3 +73,5 @@
     mode: "0755"
   notify:
     - Restart fogo validator service
+  tags:
+    - update_binary

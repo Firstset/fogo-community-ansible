@@ -45,18 +45,18 @@ Building Firedancer binary is included by default. The version and the release c
   hosts: all
   become: true
 +  vars:
-+    # use v6.0.0 as an example here
-+    validator_client_version: v6.0.0
-+    validator_client_tarfile_checksum: 817533105183734d5f4dffb4f0b11b0de2adf38b
++    # use v7.0.0 as an example here
++    validator_client_version: v7.0.0
++    validator_client_tarfile_checksum: 7d2ca6e4e47bf31ffd1c4e04634895acd820984d
 
   roles:
     - firstset.fogo_community.validator_service
 ```
 
-Then specify `upgrade_only=true` when you run the playbook:
+Then specify the tag `update_binary` when you run the playbook:
 
 ```bash
-ansible-playbook -i inventory/fogo.yml playbooks/fogo.yml --ask-become-pass -e "upgrade_only=true"
+ansible-playbook -i inventory/fogo.yml playbooks/fogo.yml --ask-become-pass -t update_binary
 ```
 
 ## License
