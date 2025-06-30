@@ -215,10 +215,11 @@ The tag `update_config` also works for overriding the systemd definition file. T
 ```
 ├── roles/
 │   ├── node_bootstrapping/    # Node bootstrapping role
-│   └── validator_service/     # Main validator deployment role
+│   ├── validator_service/     # Main validator deployment role
+│   └── operations/            # Operations role
 ├── galaxy.yml                 # Collection metadata
 ├── LICENSE                    # MIT license
-└── README.md                 # This file
+└── README.md                  # This file
 ```
 
 ## Contributing

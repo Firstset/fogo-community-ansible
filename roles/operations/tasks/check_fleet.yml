@@ -1,0 +1,63 @@
+---
+- name: Initialize reports
+  set_fact:
+    services_report: {}
+    binaries_report: {}
+
+- name: Collect state + status only for requested units
+  shell: systemctl show -p ActiveState -p UnitFileState --value {{ item }}.service
+  register: service_states
+  changed_when: false # read-only
+  failed_when: false # keep going if unit missing
+  loop: "{{ systemd_services_to_check }}"
+
+- name: Get log tail for services
+  shell: journalctl -u {{ item }}.service -n 10 --no-pager
+  register: service_logs
+  changed_when: false
+  failed_when: false
+  loop: "{{ systemd_services_to_check }}"
+
+- name: Build service_logs_dict from list
+  set_fact:
+    service_logs_dict: "{{ service_logs_dict | default({}) | combine({ item.item: item.stdout | default('log unavailable') }) }}"
+  loop: "{{ service_logs.results }}"
+  when: not item.skipped | default(false)
+  no_log: true
+
+- name: Build services_report
+  set_fact:
+    services_report: >-
+      {{ services_report | combine({
+        item.item: {
+          'active_state': item.stdout_lines[0] | default('unknown'),
+          'unit_file_state': item.stdout_lines[1] | default('unknown'),
+          'logs': service_logs_dict[item.item] | default('log unavailable')
+        }
+      }, recursive=True) }}
+  loop: "{{ service_states.results }}"
+  when: not item.skipped | default(false)
+  no_log: true
+
+- name: Get binary versions
+  command: "{{ item.value.path }} {{ item.value.option }}"
+  register: binary_versions
+  changed_when: false
+  failed_when: false
+  loop: "{{ binaries_to_check | dict2items }}"
+
+- name: Build binaries_report
+  set_fact:
+    binaries_report: "{{ binaries_report | combine({ item.item.key: item.stdout | default('unknown') }) }}"
+  loop: "{{ binary_versions.results }}"
+  when: not item.skipped | default(false)
+  no_log: true
+
+- name: Collect kernel version
+  command: uname -r
+  register: kernel_ver
+  changed_when: false
+
+- name: Set fact host_report
+  set_fact:
+    host_report: "{{ lookup('template', 'check_fleet_report.j2') }}"
