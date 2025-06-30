@@ -1,0 +1,11 @@
+#SPDX-License-Identifier: MIT
+---
+# defaults file for operations
+systemd_services_to_check:
+  - fail2ban
+  - node_exporter
+  - fogo-validator
+binaries_to_check:
+  fdctl:
+    path: /usr/local/bin/fdctl
+    option: version

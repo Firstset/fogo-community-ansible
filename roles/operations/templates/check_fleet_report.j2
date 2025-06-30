@@ -1,0 +1,16 @@
+========= {{ inventory_hostname }} =========
+Kernel version: {{ kernel_ver.stdout }}
+Key services:
+
+{% for svc in systemd_services_to_check %}
+[{{ svc }}] active_state={{ services_report[svc].active_state }}, unit_file_state={{ services_report[svc].unit_file_state }}
+last 10 log lines:
+{{ services_report[svc].logs | indent(2) }}
+----
+
+{% endfor %}
+
+Key binaries:
+{% for bin in binaries_report %}
+{{ bin }} version -> {{ binaries_report[bin] }}
+{% endfor %}
