@@ -37,7 +37,8 @@
   shell: yes y | ./deps.sh
   args:
     chdir: "{{ temp_source_code_folder }}/fogo"
-  ignore_errors: true
+  retries: 2
+  delay: 5
   tags:
     - update_binary
 
