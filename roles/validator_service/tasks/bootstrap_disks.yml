@@ -67,6 +67,18 @@
     dev: "{{ ledger_disk }}p1"
   when: ledger_disk is defined
 
+- name: Create folders in mounted directories
+  become: true
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+    mode: "0755"
+  loop:
+    - "/mnt/ledger"
+    - "/mnt/accounts"
+
 - name: Create mount directories
   become: true
   file:
@@ -96,18 +108,6 @@
     opts: defaults,noatime
     state: mounted
   when: ledger_disk is defined
-
-- name: Create folders in mounted directories
-  become: true
-  file:
-    path: "{{ item }}"
-    state: directory
-    owner: "{{ service_user }}"
-    group: "{{ service_user }}"
-    mode: "0755"
-  loop:
-    - "/mnt/ledger"
-    - "/mnt/accounts"
 
 - name: Set correct ownership for mounted directories
   become: true

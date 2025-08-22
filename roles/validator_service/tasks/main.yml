@@ -7,6 +7,15 @@
       - acl
     update_cache: yes
 
+- name: Create a service user
+  become: true
+  user:
+    name: "{{ service_user }}"
+    shell: "/bin/bash"
+    create_home: true
+    password: "!"
+    state: present
+
 - name: Bootstrap disks (which should be run only once)
   include_tasks: bootstrap_disks.yml
   when: bootstrap_disks
@@ -17,15 +26,6 @@
 
 - name: Update UFW settings for Firedancer
   include_tasks: ufw_settings.yml
-
-- name: Create a service user
-  become: true
-  user:
-    name: "{{ service_user }}"
-    shell: "/bin/bash"
-    create_home: true
-    password: "!"
-    state: present
 
 - name: Update repositories cache and install required libraries
   become: true
