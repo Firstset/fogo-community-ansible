@@ -4,8 +4,9 @@
 bootstrap_disks: false
 enable_cpu_performance_mode: true
 service_user: fogo
-validator_client_version: v7.0.0
-validator_client_tarfile_checksum: 7d2ca6e4e47bf31ffd1c4e04634895acd820984d
+validator_client_version: v10.0.0
+
+validator_client_tarfile_checksum: 5b7b7a18849deb5fd09185828b8c556facd51626
 firedancer_config_path: "/home/{{ service_user }}/firedancer-config.toml"
 identity_path: "/home/{{ service_user }}/unstaked-identity.json"
 firedancer_config_template_path: "firedancer_config_template.toml.j2"

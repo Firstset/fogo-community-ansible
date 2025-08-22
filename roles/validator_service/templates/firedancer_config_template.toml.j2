@@ -9,7 +9,6 @@ dynamic_port_range = "{{ firedancer_dynamic_port_range }}"
 host = "{{ ansible_default_ipv4.address }}"
 entrypoints = ["testnet-entrypoint.fogo.io:8001"]
 port = {{ firedancer_gossip_port }}
-port_check = false # do not check it for now during the testing phase
 
 [tiles.poh]
 lagged_consecutive_leader_start = false
