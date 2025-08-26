@@ -1,0 +1,27 @@
+---
+- name: Install Solana CLI
+  become: true
+  become_user: "{{ service_user }}"
+  shell: 'sh -c "$(curl -sSfL https://release.anza.xyz/{{ solana_cli_version }}/install)"'
+  tags:
+    - solana_cli
+
+- name: Ensure Solana CLI config directory exists
+  file:
+    path: "/home/{{ service_user }}/.config/solana/cli"
+    state: directory
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+    mode: "0755"
+  tags:
+    - solana_cli
+
+- name: Create Solana CLI config for Fogo
+  template:
+    src: "{{ solana_cli_config_template_path }}"
+    dest: "/home/{{ service_user }}/.config/solana/cli/config.yml"
+    mode: "0644"
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+  tags:
+    - solana_cli

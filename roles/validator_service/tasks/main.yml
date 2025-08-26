@@ -92,3 +92,9 @@
     state: started
   tags:
     - update_config
+
+- name: Install Solana CLI
+  include_tasks: install_solana_cli.yml
+  when: install_solana_cli
+  tags:
+    - solana_cli
