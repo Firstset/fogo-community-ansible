@@ -9,6 +9,7 @@ validator_client_version: v10.0.0
 validator_client_tarfile_checksum: 5b7b7a18849deb5fd09185828b8c556facd51626
 firedancer_config_path: "/home/{{ service_user }}/firedancer-config.toml"
 identity_path: "/home/{{ service_user }}/unstaked-identity.json"
+vote_account_path: ""
 firedancer_config_template_path: "firedancer_config_template.toml.j2"
 firedancer_systemd_template_path: "firedancer_systemd.j2"
 
@@ -29,3 +30,7 @@ firedancer_dynamic_port_range: 8901-9000
 install_solana_cli: true
 solana_cli_version: v2.2.20
 solana_cli_config_template_path: "solana_cli.yml.j2"
+
+# if agave-validator is available, we use its wait-for-restart-window subcommand to find a good timing for a restart
+# this option defines the value of option --max-delinquent-stake
+max_delinquent_stake_before_restart: 70
