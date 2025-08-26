@@ -1,8 +1,44 @@
 #SPDX-License-Identifier: MIT
 ---
 # handlers file for fogo_validator
-- name: Restart fogo validator service
+
+# handlers for `Restart fogo validator service`
+- name: Check agave-validator availability
+  shell: 'bash -lc "command -v agave-validator"'
+  become: true
+  become_user: "{{ service_user }}"
+  register: agave_validator_check
+  changed_when: false
+  failed_when: false
+  listen: Restart fogo validator service
+
+- name: Wait for restart window
+  shell: >
+    bash -lc
+    'agave-validator --ledger {{ ledger_path }}
+    wait-for-restart-window --max-delinquent-stake {{ max_delinquent_stake_before_restart }}'
+  become: true
+  become_user: "{{ service_user }}"
+  when: agave_validator_check.rc == 0
+  register: wait_cmd
+  changed_when: false
+  listen: Restart fogo validator service
+
+- name: Restart fogo validator
   systemd_service:
     name: fogo-validator
     daemon_reload: true
     state: restarted
+  become: true
+  when: agave_validator_check.rc == 0 and wait_cmd.rc == 0
+  listen: Restart fogo validator service
+
+- name: Restart fogo validator (fallback)
+  systemd_service:
+    name: fogo-validator
+    daemon_reload: true
+    state: restarted
+  become: true
+  when: agave_validator_check.rc != 0
+  listen: Restart fogo validator service
+# handlers for `Restart fogo validator service` end
