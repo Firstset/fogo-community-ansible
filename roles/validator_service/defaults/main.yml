@@ -23,3 +23,9 @@ accounts_path: "/mnt/accounts"
 
 firedancer_gossip_port: 8001
 firedancer_dynamic_port_range: 8901-9000
+
+# Run the Solana CLI installation tool to install binaries such as solana and agave-validator
+# ref: https://docs.anza.xyz/cli/install#use-the-solana-install-tool
+install_solana_cli: true
+solana_cli_version: v2.2.20
+solana_cli_config_template_path: "solana_cli.yml.j2"
