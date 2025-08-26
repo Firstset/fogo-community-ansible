@@ -26,6 +26,7 @@ All variables which can be overridden are stored in `defaults/main.yml`.
 ### Bootstrap a validator node with security hardening
 
 This role performs the following tasks:
+
 - Creates sudo users with SSH key authentication
 - Configures SSH security (disables root login, password authentication)
 - Changes SSH port for enhanced security
@@ -51,6 +52,23 @@ Here's an example for a playbook that uses this role:
   roles:
     - firstset.fogo_community.node_bootstrapping
 ```
+
+### Important Notes Regarding SSH
+
+Please be aware that, with the current implementation, after executing the `node_bootstrapping` tasks, SSH using root user or using a password will be both disabled. If there is at least one sudo user configured using `sudo_users`, the role also configures SSH to only allow the connection from these users. We will provide a flag that allows to keep existing sudo users access in a near further.
+
+Considering there can be multiple sudo users to be created and the operator may not want to input the password for each user, the role generates a one-time, expired password for each user. This password is logged in the Ansible output, so please make sure to capture it during the playbook execution. You can use this password for the initial login and then change it immediately after logging in. If the log gets lost, it is safe to rerun the playbook and this one-time password will be regenerated.
+
+Here is an example of the relevant log output:
+
+```
+TASK [firstset.fogo_community.node_bootstrapping : Send the following one-time password to the user <username>, which is needed for creating the real password] ***********************************************
+ok: [some-node-name] => {
+    "msg": "some-password"
+}
+```
+
+If there are several hosts included in the execution, the random password for a user will be reused for all of the hosts.
 
 ### Basic setup with minimal configuration
 
