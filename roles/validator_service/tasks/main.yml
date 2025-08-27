@@ -43,6 +43,16 @@
       - protobuf-compiler
     update_cache: yes
 
+- name: Check agave-validator availability (used for gracefully restarting the service)
+  shell: 'bash -lc "command -v agave-validator"'
+  become: true
+  become_user: "{{ service_user }}"
+  register: agave_validator_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - always
+
 - name: Build fogo firedancer client
   include_tasks: build_fogo_fd_client.yml
   vars:

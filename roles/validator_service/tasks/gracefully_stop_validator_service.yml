@@ -1,0 +1,21 @@
+- name: Wait for restart window
+  shell: >
+    bash -lc
+    'agave-validator --ledger {{ ledger_path }}
+    wait-for-restart-window --max-delinquent-stake {{ max_delinquent_stake_before_restart }}'
+  become: true
+  become_user: "{{ service_user }}"
+  when: agave_validator_check.rc == 0
+  changed_when: false
+  failed_when: false
+  tags:
+    - always
+
+- name: Stop fogo validator as this is an upgrade task
+  systemd_service:
+    name: fogo-validator
+    daemon_reload: true
+    state: stopped
+  tags:
+    - never
+    - update_binary
