@@ -3,15 +3,6 @@
 # handlers file for fogo_validator
 
 # handlers for `Restart fogo validator service`
-- name: Check agave-validator availability
-  shell: 'bash -lc "command -v agave-validator"'
-  become: true
-  become_user: "{{ service_user }}"
-  register: agave_validator_check
-  changed_when: false
-  failed_when: false
-  listen: Restart fogo validator service
-
 - name: Wait for restart window
   shell: >
     bash -lc
