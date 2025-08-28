@@ -147,9 +147,9 @@ The main role for bootstrapping a FOGO validator node. See the [role documentati
 
 ### Important Notes Regarding SSH
 
-Please be aware that, with the current implementation, after executing the `node_bootstrapping` tasks, SSH using root user or using a password will be both disabled. If there is at least one sudo user configured using `sudo_users`, the role also configures SSH to only allow the connection from these users. We will provide a flag that allows to keep existing sudo users access in a near further.
+Please be aware that, with the current implementation, after executing the `node_bootstrapping` tasks, SSH using a password will be disabled. SSH using the root user is disabled as well while this can be configured with `disallow_root_login: false/true`. If there is at least one sudo user configured using `sudo_users`, the role also configures SSH to only allow the connection from these users by default. Blocking non-managed sudo users can be disabled by setting `block_non_managed_sudo_users` to `false`.
 
-Considering there can be multiple sudo users to be created and the operator may not want to input the password for each user, the role generates a one-time, expired password for each user. This password is logged in the Ansible output, so please make sure to capture it during the playbook execution. You can use this password for the initial login and then change it immediately after logging in. If the log gets lost, it is safe to rerun the playbook and this one-time password will be regenerated.
+Considering there can be multiple sudo users to be created and the operator may not want to input the password for each user, the role generates a one-time, expired password for each user. It is possible to set the one-time password using `-e "sudo_user_activation_password=<activation_password>"`. This password is logged in the Ansible output, so please make sure to capture it during the playbook execution if it is not set via `sudo_user_activation_password`. A sudo user can use this password for the initial login and then change it immediately after logging in.
 
 Here is an example of the relevant log output:
 

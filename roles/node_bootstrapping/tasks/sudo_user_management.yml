@@ -13,7 +13,7 @@
     line: "AllowUsers {{ sudo_users.keys() | join(' ') }}"
     state: present
     create: yes
-  when: sudo_users is defined
+  when: sudo_users is defined and block_non_managed_sudo_users is true
 
 - name: Ensure root login is disabled in SSH config since we have created sudo users
   become: true
@@ -22,7 +22,7 @@
     regexp: "^#?PermitRootLogin"
     line: "PermitRootLogin no"
     state: present
-  when: sudo_users is defined
+  when: sudo_users is defined and disallow_root_login is true
 
 - name: Restart SSH service
   service:
