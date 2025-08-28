@@ -8,3 +8,15 @@ prometheus_node_ip: null
 enable_ufw: false
 # switch to use the following port for SSH connections instead of port 22
 ssh_port_number: 156
+
+# generate random activation password for each sudo user when it is null
+# when it is set with a string, use the string as activation password for all of the sudo users to be created
+sudo_user_activation_password: null
+
+# if there is at least one sudo user to be created by the role,
+# run a task to set `AllowUsers` in sshd_config to only allow these managed sudo users to remotely login
+block_non_managed_sudo_users: true
+
+# if there is at least one sudo user to be created by the role,
+# set `PermitRootLogin no` in sshd_config when the following option is true
+disallow_root_login: true

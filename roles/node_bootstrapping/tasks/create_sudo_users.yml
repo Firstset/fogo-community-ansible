@@ -7,22 +7,24 @@
 
 - name: Generate a random password (like a placeholder) that will be set expired in this execution
   set_fact:
-    sudo_user_password: "{{ lookup('ansible.builtin.password', '/dev/null', length=8, chars=['ascii_letters', 'digits']) }}"
+    sudo_user_password_generated: "{{ lookup('ansible.builtin.password', '/dev/null', length=8, chars=['ascii_letters', 'digits']) }}"
   run_once: true
+  when: sudo_user_activation_password is none and user_exists.rc != 0 # return code is non-zero which means the user does not exist yet
 
 - name: Send the following one-time password to the user {{ sudo_username }}, which is needed for creating the real password
   ansible.builtin.debug:
-    msg: "{{ sudo_user_password }}"
+    msg: "{{ (sudo_user_activation_password | default(sudo_user_password_generated, true)) }}"
   run_once: true
+  when: user_exists.rc != 0
 
-- name: Create user {{ sudo_username }} with a random, expired password
+- name: "Create user {{ sudo_username }} with a {{ sudo_user_activation_password is none | ternary('random', 'user-defined') }}, expired password"
   become: true
   user:
     name: "{{ sudo_username }}"
     shell: "/bin/bash"
     create_home: yes
-    password: "{{ sudo_user_password | password_hash('sha512') }}" # Locked password
-  when: user_exists.rc != 0 # return code is non-zero which means the user does not exist yet
+    password: "{{ (sudo_user_activation_password | default(sudo_user_password_generated, true)) | password_hash('sha512') }}" # Locked password
+  when: user_exists.rc != 0
 
 - name: Expire password to force change on first login
   become: true
