@@ -34,3 +34,8 @@
   when: agave_validator_check.rc != 0 or wait_cmd.rc != 0
   listen: Restart fogo validator service
 # handlers for `Restart fogo validator service` end
+
+- name: Run logrotate now
+  ansible.builtin.systemd:
+    name: logrotate.service
+    state: started
