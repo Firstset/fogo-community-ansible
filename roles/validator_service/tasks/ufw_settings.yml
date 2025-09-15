@@ -15,3 +15,17 @@
     rule: allow
     port: "{{ firedancer_gossip_port }}"
     comment: "firedancer gossip port"
+
+- name: Open tpu port
+  community.general.ufw:
+    rule: allow
+    port: "9001"
+    proto: udp
+    comment: "tpu port"
+
+- name: Open tpu-quic port
+  community.general.ufw:
+    rule: allow
+    port: "9007"
+    proto: udp
+    comment: "tpu quic port"

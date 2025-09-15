@@ -36,8 +36,7 @@ full_snapshot_interval_slots = 22500
 
 [log]
 level_logfile = "INFO"
-# Defaults to stdout, but you can set this to a file to persist logs.
-path = "-"
+path = "{{ firedancer_log_path }}"
 
 [rpc]
 port = 8899

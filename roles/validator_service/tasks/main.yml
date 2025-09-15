@@ -82,8 +82,10 @@
     - name: "{{ identity_path }} does not exist, create a new one for now"
       become: true
       become_user: "{{ service_user }}"
-      shell: "fdctl keys new identity --config {{ firedancer_config_path }}"
+      shell: "fdctl keys new {{ identity_path }}"
       when: not identity_keypair_stat.stat.exists
+  tags:
+    - update_config
 
 - name: Create the systemd service for fogo
   become: true
@@ -91,6 +93,32 @@
     src: "{{ firedancer_systemd_template_path }}"
     dest: "/etc/systemd/system/fogo-validator.service"
     mode: "0644"
+  tags:
+    - update_config
+
+- name: Configure log rotation if Firedancer logs are written to a file
+  become: true
+  block:
+    - name: Ensure logrotate is installed
+      ansible.builtin.package:
+        name: logrotate
+        state: present
+
+    - name: Install logrotate rule for Firedancer
+      ansible.builtin.copy:
+        dest: /etc/logrotate.d/firedancer
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          {{ firedancer_log_path }} {
+            rotate 7
+            daily
+            missingok
+            copytruncate
+          }
+      notify: Run logrotate now
+  when: "firedancer_log_path != '-'"
   tags:
     - update_config
 

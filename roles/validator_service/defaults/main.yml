@@ -4,10 +4,13 @@
 bootstrap_disks: false
 enable_cpu_performance_mode: true
 service_user: fogo
-validator_client_version: v10.0.0
+validator_client_version: v14.0.0
 
-validator_client_tarfile_checksum: 5b7b7a18849deb5fd09185828b8c556facd51626
+validator_client_tarfile_checksum: d5e3493a7192cbb3713f92870205c085b0fa163d
 firedancer_config_path: "/home/{{ service_user }}/firedancer-config.toml"
+# setting the log path to `-` means outputing logs to stdout
+# we use a file instead to avoid duplicating logs to syslog
+firedancer_log_path: "/home/{{ service_user }}/firedancer-validator.log"
 identity_path: "/home/{{ service_user }}/unstaked-identity.json"
 vote_account_path: ""
 firedancer_config_template_path: "firedancer_config_template.toml.j2"

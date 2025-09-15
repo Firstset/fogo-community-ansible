@@ -33,7 +33,7 @@ FOGO is a Solana validator client built on Firedancer, designed for high perform
 - **Ansible**: >= 2.9
 - **Target OS**: Ubuntu 20.04+ or Debian 11+
 - **Hardware**: Meets [FOGO's official requirements](https://docs.fogo.io/running-a-node.html)
-- **Network**: Open ports for gossip (8001) and dynamic port range (8901-9000)
+- **Network**: Open ports for gossip (8001), tpu ports (9001, 9007), and dynamic port range (8901-9000)
 
 ## Installation
 
