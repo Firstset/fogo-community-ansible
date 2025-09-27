@@ -82,7 +82,7 @@
     - name: "{{ identity_path }} does not exist, create a new one for now"
       become: true
       become_user: "{{ service_user }}"
-      shell: "fdctl keys new {{ identity_path }}"
+      shell: "fdctl --config {{ firedancer_config_path }} keys new {{ identity_path }}"
       when: not identity_keypair_stat.stat.exists
   tags:
     - update_config
