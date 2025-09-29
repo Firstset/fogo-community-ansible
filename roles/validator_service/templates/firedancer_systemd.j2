@@ -6,14 +6,12 @@ StartLimitIntervalSec=0
 [Service]
 Type=simple
 Restart=always
-RestartSec=5
+RestartSec=1
 User=root
-LimitNOFILE=1000000
-LogRateLimitIntervalSec=0
+LimitNOFILE=52428800 # Important!
 
-ExecStartPre=fdctl configure init all --config {{ firedancer_config_path }}
-ExecStart=fdctl run --config {{ firedancer_config_path }}
-TimeoutSec=infinity
+ExecStartPre=fdctl configure init all --config /home/fogo/firedancer-config.toml
+ExecStart=fdctl run --config /home/fogo/firedancer-config.toml
 
 [Install]
 WantedBy=multi-user.target

@@ -89,25 +89,35 @@
     - "/mnt/ledger"
     - "/mnt/accounts"
 
-- name: Mount account partition
-  become: true
-  mount:
-    path: "/mnt/accounts"
-    src: "{{ account_disk }}p1"
-    fstype: ext4
-    opts: defaults,noatime
-    state: mounted
+- name: Get account partition UUID
+  command: "blkid -s UUID -o value {{ account_disk }}p1"
+  register: account_uuid
+  changed_when: false
   when: account_disk is defined
 
-- name: Mount ledger partition
-  become: true
+- name: Get ledger partition UUID
+  command: "blkid -s UUID -o value {{ ledger_disk }}p1"
+  register: ledger_uuid
+  changed_when: false
+  when: ledger_disk is defined
+
+- name: Mount account partition
   mount:
-    path: "/mnt/ledger"
-    src: "{{ ledger_disk }}p1"
+    path: "/mnt/accounts"
+    src: "UUID={{ account_uuid.stdout }}"
     fstype: ext4
     opts: defaults,noatime
     state: mounted
-  when: ledger_disk is defined
+  when: account_uuid is defined
+
+- name: Mount ledger partition
+  mount:
+    path: "/mnt/ledger"
+    src: "UUID={{ ledger_uuid.stdout }}"
+    fstype: ext4
+    opts: defaults,noatime
+    state: mounted
+  when: ledger_uuid is defined
 
 - name: Set correct ownership for mounted directories
   become: true

@@ -39,3 +39,6 @@
   ansible.builtin.systemd:
     name: logrotate.service
     state: started
+
+- name: Apply sysctl settings
+  command: sysctl --system

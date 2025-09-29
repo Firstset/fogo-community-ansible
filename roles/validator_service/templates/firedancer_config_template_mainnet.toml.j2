@@ -1,0 +1,83 @@
+user = "{{ service_user }}"
+
+# Dynamic port range setting
+dynamic_port_range = "{{ firedancer_dynamic_port_range }}"
+
+[gossip]
+host = "" # Validators don't need to advertise their endpoints
+port_check = true # This ensures your firewall is set up correctly
+port = 8001
+
+# Entrypoint
+entrypoints = ["64.130.44.149:8001"] # Set to any valid mainnet entrypoint
+
+[tiles.poh]
+lagged_consecutive_leader_start = false
+
+[ledger]
+# Set `path` to where you want the ledger to be stored. This directory will grow
+# to ~500GB by default. It should live in fast storage, preferably NVMe SSD.
+path = "{{ ledger_path }}"
+accounts_path = "{{ accounts_path }}"
+
+# Refuse to start if saved tower state is not found.  This option is
+# passed to the Agave client with the `--require-tower`
+# argument.
+require_tower = true
+
+limit_size = 300_000_000 # This will use up to around 1TB of disk space
+
+[consensus]
+# Set `identity_path` to the path of your Solana-compatible identity keypair
+# file (generated with solana-keygen new).
+identity_path = "{{ identity_path }}"
+
+# This option is passed to the Agave client with the
+# `--vote-account` argument.
+vote_account_path = "{{ vote_account_path }}"
+
+expected_genesis_hash = "CDLtwKnaCoK157uaHQDj4fHu72AyD2519Cphmpiq6hvT"
+expected_shred_version = 13033
+
+snapshot_fetch = true
+
+# During a network restart, set these:
+# expected_bank_hash = "XXXXXXXXXXXXXXXXXXXXXXX"
+# hard_fork_at_slots = [XXXXXX]
+# wait_for_supermajority_at_slot = XXXXXX
+# snapshot_fetch = false
+
+[layout]
+# The following layout is good for the Turin servers
+affinity = "auto"
+agave_affinity = "auto"
+verify_tile_count = 4
+bank_tile_count = 2
+shred_tile_count = 2
+
+[log]
+level_logfile = "INFO"
+path = "{{ firedancer_log_path }}"
+
+[rpc]
+port = 8899
+only_known = false
+private = true
+full_api = true
+transaction_history = false
+extended_tx_metadata_storage = false
+
+[snapshots]
+enabled = true
+path = "{{ ledger_path }}"
+
+# Set the following values for snapshot interval so all validators
+# produce the same snapshots.
+full_snapshot_interval_slots = 45000 # Every ~30min
+incremental_snapshot_interval_slots = 1500 # Every ~1min
+
+maximum_full_snapshots_to_retain = 48 # 2-day history
+maximum_incremental_snapshots_to_retain = 60 # 1-hour history
+
+[tiles.gui]
+enabled = false

@@ -20,9 +20,8 @@
   include_tasks: bootstrap_disks.yml
   when: bootstrap_disks
 
-- name: Conditionally include CPU performance tasks
-  include_tasks: cpu_performance_mode.yml
-  when: enable_cpu_performance_mode
+- name: Performance tuning
+  include_tasks: performance_tuning.yml
 
 - name: Update UFW settings for Firedancer
   include_tasks: ufw_settings.yml
@@ -112,7 +111,7 @@
         mode: "0644"
         content: |
           {{ firedancer_log_path }} {
-            rotate 7
+            rotate {{ firedancer_log_rotation_days }}
             daily
             missingok
             copytruncate
