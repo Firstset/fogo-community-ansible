@@ -5,15 +5,18 @@ bootstrap_disks: false
 enable_cpu_performance_mode: true
 service_user: fogo
 validator_client_version: v14.0.0
+stage: testnet # either testnet or mainnet
 
 validator_client_tarfile_checksum: d5e3493a7192cbb3713f92870205c085b0fa163d
 firedancer_config_path: "/home/{{ service_user }}/firedancer-config.toml"
 # setting the log path to `-` means outputing logs to stdout
 # we use a file instead to avoid duplicating logs to syslog
 firedancer_log_path: "/home/{{ service_user }}/firedancer-validator.log"
+# if the logs are output to a file, we set up a daily log rotation
+firedancer_log_rotation_days: 7
 identity_path: "/home/{{ service_user }}/unstaked-identity.json"
 vote_account_path: ""
-firedancer_config_template_path: "firedancer_config_template.toml.j2"
+firedancer_config_template_path: "firedancer_config_template_{{ stage }}.toml.j2"
 firedancer_systemd_template_path: "firedancer_systemd.j2"
 
 # The OS may be installed on the ledger disk, though testing has shown better performance with the ledger on its own disk
@@ -33,6 +36,7 @@ firedancer_dynamic_port_range: 8901-9000
 install_solana_cli: true
 solana_cli_version: v2.2.20
 solana_cli_config_template_path: "solana_cli.yml.j2"
+solana_cli_json_rpc_url: "https://{{ stage }}.fogo.io"
 
 # if agave-validator is available, we use its wait-for-restart-window subcommand to find a good timing for a restart
 # this option defines the value of option --max-delinquent-stake
