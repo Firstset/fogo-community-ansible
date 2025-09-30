@@ -9,7 +9,7 @@ port_check = true # This ensures your firewall is set up correctly
 port = 8001
 
 # Entrypoint
-entrypoints = ["64.130.44.149:8001"] # Set to any valid mainnet entrypoint
+entrypoints = [] # Set to any valid mainnet entrypoint
 
 [tiles.poh]
 lagged_consecutive_leader_start = false
@@ -36,8 +36,8 @@ identity_path = "{{ identity_path }}"
 # `--vote-account` argument.
 vote_account_path = "{{ vote_account_path }}"
 
-expected_genesis_hash = "CDLtwKnaCoK157uaHQDj4fHu72AyD2519Cphmpiq6hvT"
-expected_shred_version = 13033
+expected_genesis_hash = "" # mainnet expected genesis hash
+expected_shred_version = 12345 # mainnet expected shred version
 
 snapshot_fetch = true
 
