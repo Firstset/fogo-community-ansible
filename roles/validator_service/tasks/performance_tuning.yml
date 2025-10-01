@@ -58,12 +58,20 @@
 - name: Update kernel settings
   become: true
   template:
-    src: 21_fogo_validator.conf.j2
-    dest: "/etc/sysctl.d/21-fogo-validator.conf"
+    src: 99_fogo_validator.conf.j2
+    dest: "/etc/sysctl.d/99-fogo-validator.conf"
     owner: root
     group: root
     mode: "0644"
   notify: Apply sysctl settings
+
+- name: Update nofile limits for shells
+  become: true
+  blockinfile:
+    path: /etc/security/limits.conf
+    block: |
+      * soft nofile 52428800
+      * hard nofile 52428800
 
 - name: Update network ring buffers
   block:
