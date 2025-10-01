@@ -1,3 +1,16 @@
+- name: Disable unattended upgrades by managing 20auto-upgrades
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root
+    group: root
+    mode: "0644"
+    backup: true
+    content: |
+      // Managed by Ansible – disable unattended upgrades
+      APT::Periodic::Update-Package-Lists "0";
+      APT::Periodic::Unattended-Upgrade "0";
+  when: disable_unattended_upgrades
+
 - name: Update repositories cache and install fail2ban
   become: true
   apt:
