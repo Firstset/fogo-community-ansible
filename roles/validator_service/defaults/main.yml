@@ -3,6 +3,7 @@
 # defaults file for fogo_validator
 bootstrap_disks: false
 enable_cpu_performance_mode: true
+disable_swap: true
 service_user: fogo
 validator_client_version: v14.0.0
 stage: testnet # either testnet or mainnet
