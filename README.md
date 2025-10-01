@@ -171,6 +171,8 @@ The main role for deploying and managing FOGO validators. See the [role document
 - System dependencies installation
 - Optional disk bootstrapping and formatting
 - CPU performance mode configuration
+- Kernel parameter tuning (sysctl)
+- Network ring buffer adjustment
 - UFW firewall setup
 - Service user creation
 - Firedancer binary compilation

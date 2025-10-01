@@ -15,6 +15,8 @@ All variables which can be overridden are stored in `defaults/main.yml`. Please 
 ### Setup a validator node including the following tasks
 
 - Enable CPU performance mode if available
+- Kernel parameter tuning (sysctl)
+- Network ring buffer adjustment
 - Update UFW settings
 - Create a service user (username `fogo` by default)
 - Fetch Fogo release and build Firedancer binary
