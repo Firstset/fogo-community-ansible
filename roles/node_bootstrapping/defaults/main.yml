@@ -20,3 +20,6 @@ block_non_managed_sudo_users: true
 # if there is at least one sudo user to be created by the role,
 # set `PermitRootLogin no` in sshd_config when the following option is true
 disallow_root_login: true
+
+# if true, disable the automatic unattended upgrades which may cause the validator services to restart
+disable_unattended_upgrades: true
