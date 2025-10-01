@@ -129,6 +129,7 @@ The main role for bootstrapping a FOGO validator node. See the [role documentati
 **Key tasks performed:**
 
 - Sudo user creation with SSH key authentication
+- Disable unattended-upgrades by default (to prevent unexpected service restarts)
 - SSH security hardening (disable root/password login)
 - SSH port configuration for enhanced security
 - Fail2ban installation and configuration
@@ -138,12 +139,13 @@ The main role for bootstrapping a FOGO validator node. See the [role documentati
 
 **Role variables:**
 
-| Variable             | Default | Description                                                   |
-| -------------------- | ------- | ------------------------------------------------------------- |
-| `prometheus_node_ip` | `null`  | IP address of the Prometheus server to whitelist for metrics  |
-| `enable_ufw`         | `false` | Whether to enable UFW firewall after configuration            |
-| `ssh_port_number`    | `156`   | SSH port to use instead of default port 22                    |
-| `sudo_users`         | `{}`    | Dictionary of sudo users to create with their SSH public keys |
+| Variable                      | Default | Description                                                                 |
+| ----------------------------- | ------- | --------------------------------------------------------------------------- |
+| `prometheus_node_ip`          | `null`  | IP address of the Prometheus server to whitelist for metrics                |
+| `enable_ufw`                  | `false` | Whether to enable UFW firewall after configuration                          |
+| `disable_unattended_upgrades` | `true`  | Whether to disable unattended-upgrades to avoid unexpected service restarts |
+| `ssh_port_number`             | `156`   | SSH port to use instead of default port 22                                  |
+| `sudo_users`                  | `{}`    | Dictionary of sudo users to create with their SSH public keys               |
 
 ### Important Notes Regarding SSH
 
@@ -171,7 +173,8 @@ The main role for deploying and managing FOGO validators. See the [role document
 - System dependencies installation
 - Optional disk bootstrapping and formatting
 - CPU performance mode configuration
-- Kernel parameter tuning (sysctl)
+- Disable swap
+- Kernel parameter tuning (sysctl), details can be found in [this template](roles/validator_service/templates/99_fogo_validator.conf.j2)
 - Network ring buffer adjustment
 - UFW firewall setup
 - Service user creation
@@ -183,8 +186,8 @@ All configurable variables are documented in [`roles/validator_service/defaults/
 
 | Variable                            | Default                                    | Description                                                                                               |
 | ----------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| `validator_client_version`          | `v7.0.0`                                   | FOGO release version to install                                                                           |
-| `validator_client_tarfile_checksum` | `7d2ca6e4e47bf31ffd1c4e04634895acd820984d` | The SHA1 checksum of the source code tar file provided by FOGO [here](https://docs.fogo.io/releases.html) |
+| `validator_client_version`          | `v14.0.0`                                  | FOGO release version to install                                                                           |
+| `validator_client_tarfile_checksum` | `d5e3493a7192cbb3713f92870205c085b0fa163d` | The SHA1 checksum of the source code tar file provided by FOGO [here](https://docs.fogo.io/releases.html) |
 | `service_user`                      | `fogo`                                     | System user for the validator service                                                                     |
 | `firedancer_gossip_port`            | `8001`                                     | Port for gossip network communication                                                                     |
 | `bootstrap_disks`                   | `false`                                    | Whether to detect and format additional disks                                                             |

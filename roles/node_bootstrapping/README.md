@@ -28,6 +28,7 @@ All variables which can be overridden are stored in `defaults/main.yml`.
 This role performs the following tasks:
 
 - Creates sudo users with SSH key authentication
+- Disable unattended-upgrades by default (to prevent unexpected service restarts)
 - Configures SSH security (disables root login, password authentication)
 - Changes SSH port for enhanced security
 - Installs and configures fail2ban for intrusion prevention
