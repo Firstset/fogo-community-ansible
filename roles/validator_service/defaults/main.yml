@@ -42,3 +42,8 @@ solana_cli_json_rpc_url: "https://{{ stage }}.fogo.io"
 # if agave-validator is available, we use its wait-for-restart-window subcommand to find a good timing for a restart
 # this option defines the value of option --max-delinquent-stake
 max_delinquent_stake_before_restart: 70
+
+# this option defines the value of option --min-idle-time
+# note that on Fogo the slot time is 40ms while on Solana it is 400ms
+# so setting --min-idle-time to 50 minutes actually means 7500 slots, which is around 5 mins (10x faster)
+min_idle_time_in_minutes: 50

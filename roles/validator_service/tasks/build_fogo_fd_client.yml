@@ -31,6 +31,20 @@
   tags:
     - update_binary
 
+- name: Wait for a maintance window to build the binary
+  shell: >
+    bash -lc
+    'agave-validator --ledger {{ ledger_path }}
+    wait-for-restart-window --max-delinquent-stake {{ max_delinquent_stake_before_restart }} --min-idle-time {{ min_idle_time_in_minutes }}'
+  become: true
+  become_user: "{{ service_user }}"
+  when: agave_validator_check.rc == 0
+  register: wait_cmd
+  changed_when: false
+  failed_when: false
+  tags:
+    - update_binary
+
 - name: Run deps.sh to install dependencies
   become: true
   become_user: "{{ service_user }}"
