@@ -7,7 +7,7 @@
   shell: >
     bash -lc
     'agave-validator --ledger {{ ledger_path }}
-    wait-for-restart-window --max-delinquent-stake {{ max_delinquent_stake_before_restart }}'
+    wait-for-restart-window --max-delinquent-stake {{ max_delinquent_stake_before_restart }} --min-idle-time {{ min_idle_time_in_minutes }}'
   become: true
   become_user: "{{ service_user }}"
   when: agave_validator_check.rc == 0
