@@ -52,10 +52,33 @@
   tags:
     - always
 
-- name: Build fogo firedancer client
-  include_tasks: build_fogo_fd_client.yml
+- name: "Build fogo binaries ({{ fogo_binaries_to_build | join(', ') }})"
+  include_tasks: build_fogo_binaries.yml
+  when: "fogo_binaries_build_mode != 'push'"
   vars:
     temp_source_code_folder: "/home/{{ service_user }}/fogo-{{ validator_client_version }}"
+  tags:
+    - update_binary
+
+- name: "Push fogo binaries ({{ fogo_binaries_to_build | join(', ') }}) to the host"
+  ansible.posix.synchronize:
+    src: "{{ fogo_binaries_local_path }}/{{ item }}"
+    dest: "/tmp/ansible_fogo_artifacts/{{ item }}"
+    mode: push
+    rsync_opts:
+      - "--mkpath" # create target directory if missing, available in newer versions of rsync (3.2.0 and later)
+  loop: "{{ fogo_binaries_to_build }}"
+  when: "fogo_binaries_build_mode == 'push'"
+  tags:
+    - update_binary
+
+- name: "Update fogo binaries ({{ fogo_binaries_to_build | join(', ') }})"
+  include_tasks: update_fogo_binaries.yml
+  vars:
+    temp_binaries_folder: >-
+      {{ '/tmp/ansible_fogo_artifacts'
+         if fogo_binaries_build_mode == 'push'
+         else '/home/' ~ service_user ~ '/fogo-' ~ validator_client_version ~ '/fogo/build/native/gcc/bin' }}
   tags:
     - update_binary
 
@@ -130,8 +153,7 @@
   tags:
     - update_config
 
-- name: Install Solana CLI
-  include_tasks: install_solana_cli.yml
-  when: install_solana_cli
+- name: Configure Solana CLI
+  include_tasks: configure_solana_cli.yml
   tags:
     - solana_cli

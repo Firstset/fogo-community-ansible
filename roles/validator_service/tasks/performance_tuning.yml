@@ -1,5 +1,6 @@
 ---
 - name: Enable CPU performance mode
+  become: true
   when: enable_cpu_performance_mode
   block:
     - name: Install required packages (Debian-based)
@@ -89,6 +90,7 @@
       * hard nofile 52428800
 
 - name: Update network ring buffers
+  become: true
   block:
     - name: Filter NICs (exclude loopback and bonds)
       set_fact:
