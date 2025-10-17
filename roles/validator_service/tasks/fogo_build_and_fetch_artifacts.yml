@@ -1,0 +1,42 @@
+- name: Build artifacts in the remote node
+  include_tasks: build_fogo_binaries.yml
+  vars:
+    temp_source_code_folder: "/home/{{ service_user }}/fogo-{{ validator_client_version }}"
+
+- name: Remove temporary artifacts folder in {{ inventory_hostname }} if it exists
+  become: true
+  become_user: "{{ service_user }}"
+  ansible.builtin.file:
+    path: "/tmp/fogo_artifacts"
+    state: absent
+  tags: fetch_only
+
+- name: Recreate the temporary artifacts folder /tmp/fogo_artifacts
+  become: true
+  become_user: "{{ service_user }}"
+  ansible.builtin.file:
+    path: /tmp/fogo_artifacts
+    state: directory
+  tags: fetch_only
+
+- name: Copy the binaries in {{ inventory_hostname }} to the temporary folder so that we can change the ownership and make it working for rsync
+  become: true
+  become_user: "{{ service_user }}"
+  ansible.builtin.copy:
+    src: "/home/{{ service_user }}/fogo-{{ validator_client_version }}/fogo/build/native/gcc/bin/{{ item }}"
+    dest: "/tmp/fogo_artifacts/{{ item }}"
+    remote_src: true
+    mode: preserve # the file will be given the same permissions as the source file
+  loop: "{{ fogo_binaries_to_build }}"
+  tags: fetch_only
+
+- name: Fetch artifacts
+  ansible.posix.synchronize:
+    src: "{{ inventory_hostname }}:/tmp/fogo_artifacts/{{ item }}"
+    dest: "{{ fogo_binaries_local_path }}/{{ item }}"
+    mode: pull
+    rsync_opts:
+      - "--mkpath" # create target directory if missing, available in newer versions of rsync (3.2.0 and later)
+  loop: "{{ fogo_binaries_to_build }}"
+  delegate_to: "localhost"
+  tags: fetch_only
