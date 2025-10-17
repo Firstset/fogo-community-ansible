@@ -17,6 +17,8 @@
     - solana_cli
 
 - name: Ensure Solana CLI config directory exists
+  become: true
+  become_user: "{{ service_user }}"
   file:
     path: "/home/{{ service_user }}/.config/solana/cli"
     state: directory
@@ -27,6 +29,8 @@
     - solana_cli
 
 - name: Create Solana CLI config for Fogo
+  become: true
+  become_user: "{{ service_user }}"
   template:
     src: "{{ solana_cli_config_template_path }}"
     dest: "/home/{{ service_user }}/.config/solana/cli/config.yml"

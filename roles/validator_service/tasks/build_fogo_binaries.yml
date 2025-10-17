@@ -1,4 +1,6 @@
 - name: Remove temporary source code folder {{ temp_source_code_folder }}
+  become: true
+  become_user: "{{ service_user }}"
   ansible.builtin.file:
     path: "{{ temp_source_code_folder }}"
     state: absent
@@ -6,6 +8,8 @@
     - update_binary
 
 - name: Recreate the temporary source code folder {{ temp_source_code_folder }}
+  become: true
+  become_user: "{{ service_user }}"
   ansible.builtin.file:
     path: "{{ temp_source_code_folder }}"
     state: directory
@@ -13,6 +17,8 @@
     - update_binary
 
 - name: Download the release tar file
+  become: true
+  become_user: "{{ service_user }}"
   get_url:
     url: "https://static.fogo.io/fogo-{{ validator_client_version }}.tar.gz"
     dest: /tmp
@@ -21,6 +27,8 @@
     - update_binary
 
 - name: Extract the files from the tar file
+  become: true
+  become_user: "{{ service_user }}"
   ansible.builtin.unarchive:
     src: "/tmp/fogo-{{ validator_client_version }}.tar.gz"
     dest: "{{ temp_source_code_folder }}"
@@ -32,12 +40,12 @@
     - update_binary
 
 - name: Wait for a maintance window to build the binary
+  become: true
+  become_user: "{{ service_user }}"
   shell: >
     bash -lc
     'agave-validator --ledger {{ ledger_path }}
     wait-for-restart-window --max-delinquent-stake {{ max_delinquent_stake_before_restart }} --min-idle-time {{ min_idle_time_in_minutes }}'
-  become: true
-  become_user: "{{ service_user }}"
   when: agave_validator_check.rc == 0
   register: wait_cmd
   changed_when: false

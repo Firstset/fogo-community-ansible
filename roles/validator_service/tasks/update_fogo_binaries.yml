@@ -10,6 +10,8 @@
     - update_binary
 
 - name: Stat new fdctl (build artifact)
+  become: true
+  become_user: "{{ service_user }}"
   ansible.builtin.stat:
     path: "{{ temp_binaries_folder }}/fdctl"
     get_checksum: true
@@ -25,7 +27,7 @@
   tags:
     - update_binary
 
-- name: Compute whether binary differs and/or perms need fixing
+- name: Compute whether binary checksum differs
   ansible.builtin.set_fact:
     fdctl_needs_copy: >-
       {{ (not installed_fdctl.stat.exists) or
