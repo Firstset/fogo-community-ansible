@@ -32,10 +32,21 @@ accounts_path: "/mnt/accounts"
 firedancer_gossip_port: 8001
 firedancer_dynamic_port_range: 8901-9000
 
+# fogo_binaries_build_mode support two values: remote (defeault) and push
+# `remote` means the binaries are built by each host which may lead to performance issues if the node is running as an active validator
+# `push` means the binaries are pre-built and placed in the controller node, under the path `fogo_binaries_local_path`
+fogo_binaries_build_mode: remote
+fogo_binaries_local_path: ./fogo_artifacts
+# the list of binaries to be built
+fogo_binaries_to_build:
+  - fdctl
+  - solana
+  - agave-ledger-tool
+
 # Run the Solana CLI installation tool to install binaries such as solana and agave-validator
 # ref: https://docs.anza.xyz/cli/install#use-the-solana-install-tool
-install_solana_cli: true
-solana_cli_version: v2.2.20
+install_agave_validator_binary: true
+agave_validator_version: v2.2.20
 solana_cli_config_template_path: "solana_cli.yml.j2"
 solana_cli_json_rpc_url: "https://{{ stage }}.fogo.io"
 

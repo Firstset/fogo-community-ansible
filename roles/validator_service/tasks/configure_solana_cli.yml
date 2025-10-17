@@ -1,8 +1,18 @@
 ---
-- name: Install Solana CLI
+- name: Install agave_validator binary
+  shell: 'sh -c "$(curl -sSfL https://release.anza.xyz/{{ agave_validator_version }}/install)" -- --no-modify-path {{ agave_validator_version }}'
+  when: install_agave_validator_binary
+  tags:
+    - solana_cli
+
+- name: Copy agave_validator to /usr/local/bin
   become: true
-  become_user: "{{ service_user }}"
-  shell: 'sh -c "$(curl -sSfL https://release.anza.xyz/{{ solana_cli_version }}/install)"'
+  ansible.builtin.copy:
+    src: "{{ ansible_env.HOME }}/.local/share/solana/install/active_release/bin/agave-validator"
+    dest: "/usr/local/bin/agave-validator"
+    remote_src: true
+    mode: "0755"
+  when: install_agave_validator_binary
   tags:
     - solana_cli
 

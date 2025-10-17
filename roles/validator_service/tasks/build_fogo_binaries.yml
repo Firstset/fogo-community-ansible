@@ -56,60 +56,16 @@
   tags:
     - update_binary
 
-- name: Build fdctl binary
+- name: "Build {{ fogo_binaries_to_build | join(', ') }}"
   become: true
   become_user: "{{ service_user }}"
-  shell: . ~/.profile && make -j fdctl
+  shell: ". ~/.profile && make -j {{ fogo_binaries_to_build | join(' ') }}"
   args:
     chdir: "{{ temp_source_code_folder }}/fogo"
-    creates: "{{ temp_source_code_folder }}/fogo/build/native/gcc/bin/fdctl"
+    creates: "{{ temp_source_code_folder }}/fogo/build/native/gcc/bin/{{ fogo_binaries_to_build[0] | default('fdctl') }}"
   register: make_result
   retries: 2
   until: make_result.rc == 0
   delay: 5
-  tags:
-    - update_binary
-
-- name: Stat new fdctl (build artifact)
-  ansible.builtin.stat:
-    path: "{{ temp_source_code_folder }}/fogo/build/native/gcc/bin/fdctl"
-    get_checksum: true
-  register: new_fdctl
-  tags:
-    - update_binary
-
-- name: Stat installed fdctl (target)
-  ansible.builtin.stat:
-    path: /usr/local/bin/fdctl
-    get_checksum: true
-  register: installed_fdctl
-  tags:
-    - update_binary
-
-- name: Compute whether binary differs and/or perms need fixing
-  ansible.builtin.set_fact:
-    fdctl_needs_copy: >-
-      {{ (not installed_fdctl.stat.exists) or
-         (new_fdctl.stat.checksum != installed_fdctl.stat.checksum) }}
-  tags:
-    - update_binary
-
-- name: Stop fogo validator as this is an upgrade task
-  include_tasks: gracefully_stop_validator_service.yml
-  when: fdctl_needs_copy
-  tags:
-    - never
-    - update_binary
-
-- name: Copy fdctl binary to /usr/local/bin
-  become: true
-  ansible.builtin.copy:
-    src: "{{ temp_source_code_folder }}/fogo/build/native/gcc/bin/fdctl"
-    dest: "/usr/local/bin/fdctl"
-    remote_src: true
-    mode: "0755"
-  when: fdctl_needs_copy
-  notify:
-    - Restart fogo validator service
   tags:
     - update_binary
