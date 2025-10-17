@@ -12,6 +12,7 @@
     - always
 
 - name: Stop fogo validator as this is an upgrade task
+  become: true
   systemd_service:
     name: fogo-validator
     daemon_reload: true
