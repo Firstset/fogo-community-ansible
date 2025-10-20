@@ -46,7 +46,7 @@
     bash -lc
     'agave-validator --ledger {{ ledger_path }}
     wait-for-restart-window --max-delinquent-stake {{ max_delinquent_stake_before_restart }} --min-idle-time {{ min_idle_time_in_minutes }}'
-  when: agave_validator_check.rc == 0
+  when: agave_validator_check is undefined or agave_validator_check.rc == 0
   register: wait_cmd
   changed_when: false
   failed_when: false
