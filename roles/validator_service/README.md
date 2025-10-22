@@ -43,13 +43,13 @@ ansible-playbook -i inventory/fogo.yml playbooks/fogo.yml --ask-become-pass -e "
 Building Firedancer binary is included by default. The version and the release checksum are defined by `validator_client_version` and `validator_client_tarfile_checksum`. If there is a new version available, you can override these variables in your playbook or inventory file:
 
 ```diff
-- name: Setup Fogo Validator Node
-  hosts: all
-  become: true
+ - name: Setup Fogo Validator Node
+   hosts: all
+   become: true
 +  vars:
-+    # use v7.0.0 as an example here
-+    validator_client_version: v7.0.0
-+    validator_client_tarfile_checksum: 7d2ca6e4e47bf31ffd1c4e04634895acd820984d
++    # use v18.0.0 as an example here
++    validator_client_version: v18.0.0
++    validator_client_tarfile_checksum: 3bfaa77791659f985dcfa274999fac23906bf3e9
 
   roles:
     - firstset.fogo_community.validator_service
@@ -59,6 +59,50 @@ Then specify the tag `update_binary` when you run the playbook:
 
 ```bash
 ansible-playbook -i inventory/fogo.yml playbooks/fogo.yml --ask-become-pass -t update_binary
+```
+
+#### Configure the Binaries to Be Built
+
+By default, the role builds three binaries: `fdctl`, `solana`, and `agave-ledger-tool`. This can be configured with `fogo_binaries_to_build`, for example:
+
+```yaml
+# build and update fdctl only
+fogo_binaries_to_build:
+  - fdctl
+```
+
+#### Build Binaries in One Host and Push to Other Nodes
+
+By default, each host does the same tasks for updating the binaries: 1) fetching the source code bundle, 2) run `./deps.sh`, 3) run `make -j ...`, and 4) replacing the binaries and restarting the service if `fdctl` needs to be updated.
+
+This can be an issue if one wants to upgrade `fdctl` in an active validator node because building the binaries takes time and consumes CPU and memory resources, which will most likely makes the validator delinquent for some time. To address this, there is another mode for updating the binaries in this role: `fogo_binaries_build_mode: push`. When it is configured like this, the role pushes the binaries from the controller node to each host, and the binaries can be prepared using the following playbook:
+
+```yaml
+---
+- name: Build fogo artifacts and pull them to localhost
+  hosts: <the_host_you_would_like_to_build_the_binaries>
+  vars:
+    validator_client_version: v18.0.0
+    validator_client_tarfile_checksum: 3bfaa77791659f985dcfa274999fac23906bf3e9
+    fogo_binaries_to_build:
+      - fdctl
+      - solana
+      - agave-ledger-tool
+
+  tasks:
+    - name: Build artifacts in the remote host
+      include_role:
+        name: firstset.fogo_community.validator_service
+        tasks_from: fogo_build_and_fetch_artifacts.yml
+      tags: always # this guarantees that the task is always included
+```
+
+The playbook builds the binaries in the target host and then fetches the artifacts to the controller node under `<playbooks_folder>/fogo_artifacts` (can be configured with `fogo_binaries_local_path`). If the binaries are already built and available at `/home/{{ service_user }}/fogo-{{ validator_client_version }}/fogo/build/native/gcc/bin`, the playbook can be executed with a tag filter `-t fetch_only`.
+
+Then run the following command to update the binaries in target hosts:
+
+```bash
+ansible-playbook -i inventory/fogo.yml playbooks/fogo.yml --ask-become-pass -t update_binary -e "fogo_binaries_build_mode=push"
 ```
 
 ### Update FOGO Firedancer Configuration
