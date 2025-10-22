@@ -207,7 +207,7 @@ ansible-playbook site.yml -e "bootstrap_disks=true" --ask-become-pass
 
 ```bash
 # Upgrade to new version
-ansible-playbook site.yml -t update_binary -e "validator_client_version=v7.0.0 validator_client_tarfile_checksum=7d2ca6e4e47bf31ffd1c4e04634895acd820984d" --ask-become-pass
+ansible-playbook site.yml -t update_binary -e "validator_client_version=v18.0.0 validator_client_tarfile_checksum=3bfaa77791659f985dcfa274999fac23906bf3e9" --ask-become-pass
 ```
 
 ##### Config Updates
