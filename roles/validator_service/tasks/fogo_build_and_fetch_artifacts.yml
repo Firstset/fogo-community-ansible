@@ -23,7 +23,7 @@
   become: true
   become_user: "{{ service_user }}"
   ansible.builtin.copy:
-    src: "/home/{{ service_user }}/fogo-{{ validator_client_version }}/fogo/build/native/gcc/bin/{{ item }}"
+    src: "/home/{{ service_user }}/fogo-{{ validator_client_version }}/{{ tarball_top_folder | default('fogo-' ~ validator_client_version[1:]) }}/build/native/gcc/bin/{{ item }}"
     dest: "/tmp/fogo_artifacts/{{ item }}"
     remote_src: true
     mode: preserve # the file will be given the same permissions as the source file
