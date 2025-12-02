@@ -15,7 +15,14 @@ firedancer_config_path: "/home/{{ service_user }}/firedancer-config.toml"
 firedancer_log_path: "/home/{{ service_user }}/firedancer-validator.log"
 # if the logs are output to a file, we set up a daily log rotation
 firedancer_log_rotation_days: 7
-identity_path: "/home/{{ service_user }}/unstaked-identity.json"
+# it is recommended to create `identity.json` as a symlink file that points to the correct identity keypair
+identity_path: "/home/{{ service_user }}/identity.json"
+# staked validator identity keypair that can be used for hotswitching identities (using the set-identity API)
+active_identity_path: "/home/{{ service_user }}/validator-keypair.json"
+# a non-staked identity keypair that can be used for hotswitching identities (using the set-identity API)
+standy_identity_path: "/home/{{ service_user }}/unstaked-identity.json"
+# the prefix of a tower file's name
+tower_file_prefix: "tower-1_9"
 vote_account_path: ""
 firedancer_config_template_path: "firedancer_config_template_{{ stage }}.toml.j2"
 firedancer_systemd_template_path: "firedancer_systemd.j2"

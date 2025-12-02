@@ -1,0 +1,46 @@
+- name: Set identity to standby on active host # noqa run-once[task]
+  ansible.builtin.command:
+    cmd: "fdctl --config {{ firedancer_config_path }} set-identity {{ standy_identity_path }}"
+  delegate_to: "{{ active_host }}"
+  changed_when: false
+  run_once: true
+  register: active_set_identity_result
+
+- name: Copy tower from active host # noqa run-once[task]
+  ansible.builtin.fetch:
+    src: "{{ ledger_path }}/{{ tower_file_prefix }}-{{ hostvars[active_host].identity_pubkey }}.bin"
+    dest: "./{{ tower_file_prefix }}-{{ hostvars[active_host].identity_pubkey }}.bin"
+    flat: true
+  delegate_to: "{{ active_host }}"
+  run_once: true
+
+- name: Verify active host identity switch # noqa run-once[task]
+  ansible.builtin.assert:
+    that:
+      - "'Validator identity key switched to' in active_set_identity_result.stderr"
+    fail_msg: |
+      Failed to confirm identity switch on {{ active_host }}
+      Expected "Validator identity key switched to" message not found in output
+    quiet: true
+  run_once: true
+
+- name: Copy tower to standby host # noqa run-once[task]
+  become: true
+  ansible.builtin.copy:
+    src: "./{{ tower_file_prefix }}-{{ hostvars[active_host].identity_pubkey }}.bin"
+    dest: "{{ ledger_path }}/{{ tower_file_prefix }}-{{ hostvars[active_host].identity_pubkey }}.bin"
+    mode: "0644"
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+  delegate_to: "{{ standby_host }}"
+  run_once: true
+
+- name: Rotate standby identity to active on standby host # noqa run-once[task]
+  become: true
+  become_user: "{{ service_user }}"
+  ansible.builtin.command:
+    cmd: "fdctl --config {{ firedancer_config_path }} set-identity --require-tower {{ active_identity_path }}"
+  delegate_to: "{{ standby_host }}"
+  changed_when: false
+  run_once: true
+  register: standby_set_identity_result
