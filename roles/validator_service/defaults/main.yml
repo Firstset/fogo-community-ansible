@@ -5,10 +5,10 @@ bootstrap_disks: false
 enable_cpu_performance_mode: true
 disable_swap: true
 service_user: fogo
-validator_client_version: v14.0.0
+validator_client_version: v19.0.1
 stage: testnet # either testnet or mainnet
 
-validator_client_tarfile_checksum: d5e3493a7192cbb3713f92870205c085b0fa163d
+validator_client_tarfile_checksum: f7033371dab0a73fcee0dafaf8c1aa12beb0b158
 firedancer_config_path: "/home/{{ service_user }}/firedancer-config.toml"
 # setting the log path to `-` means outputing logs to stdout
 # we use a file instead to avoid duplicating logs to syslog
