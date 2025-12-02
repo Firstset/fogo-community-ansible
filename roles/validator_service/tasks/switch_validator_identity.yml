@@ -1,13 +1,60 @@
-- name: Validate required host variables are provided # noqa run-once[task]
-  ansible.builtin.assert:
-    that:
-      - active_host is defined
-      - standby_host is defined
-      - active_host | string | length > 0
-      - standby_host | string | length > 0
-    fail_msg: "Both active_host and standby_host must be provided when switching validator identity."
-    quiet: true
+- name: Verifications # noqa run-once[task]
   run_once: true
+  block:
+    - name: Validate required host variables are provided
+      ansible.builtin.assert:
+        that:
+          - active_host is defined
+          - standby_host is defined
+          - active_host | string | length > 0
+          - standby_host | string | length > 0
+        fail_msg: "Both active_host and standby_host must be provided when switching validator identity."
+        quiet: true
+
+    - name: Check standby identity file exists on standby host
+      become: true
+      become_user: "{{ service_user }}"
+      ansible.builtin.stat:
+        path: "{{ standy_identity_path }}"
+      delegate_to: "{{ standby_host }}"
+      register: standby_identity_stat
+
+    - name: Check standby identity file exists on active host
+      become: true
+      become_user: "{{ service_user }}"
+      ansible.builtin.stat:
+        path: "{{ standy_identity_path }}"
+      delegate_to: "{{ active_host }}"
+      register: standby_identity_on_active_stat
+
+    - name: Check active identity file exists on active host
+      become: true
+      become_user: "{{ service_user }}"
+      ansible.builtin.stat:
+        path: "{{ active_identity_path }}"
+      delegate_to: "{{ active_host }}"
+      register: active_identity_stat
+
+    - name: Check active identity file exists on standby host
+      become: true
+      become_user: "{{ service_user }}"
+      ansible.builtin.stat:
+        path: "{{ active_identity_path }}"
+      delegate_to: "{{ standby_host }}"
+      register: active_identity_on_standby_stat
+
+    - name: Validate identity files exist
+      ansible.builtin.assert:
+        that:
+          - standby_identity_stat.stat.exists
+          - standby_identity_on_active_stat.stat.exists
+          - active_identity_stat.stat.exists
+          - active_identity_on_standby_stat.stat.exists
+        fail_msg: |
+          Identity files not found on one or both hosts.
+          Standby host ({{ standby_host }}): {{ standy_identity_path }} exists? {{ standby_identity_stat.stat.exists | default(false) }}, {{ active_identity_path }} exists? {{ active_identity_on_standby_stat.stat.exists | default(false) }}
+          Active host ({{ active_host }}): {{ standy_identity_path }} exists? {{ standby_identity_on_active_stat.stat.exists | default(false) }}, {{ active_identity_path }} exists? {{ active_identity_stat.stat.exists | default(false) }}
+        quiet: true
 
 - name: Point identity symlink to standby key on previous active host # noqa run-once[task]
   become: true
