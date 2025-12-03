@@ -56,6 +56,38 @@
           Active host ({{ active_host }}): {{ standy_identity_path }} exists? {{ standby_identity_on_active_stat.stat.exists | default(false) }}, {{ active_identity_path }} exists? {{ active_identity_stat.stat.exists | default(false) }}
         quiet: true
 
+    - name: Check tower file exists on active host
+      become: true
+      become_user: "{{ service_user }}"
+      ansible.builtin.stat:
+        path: "{{ hostvars[active_host].ledger_path | default(ledger_path) }}/{{ tower_file_prefix }}-{{ hostvars[active_host].identity_pubkey }}.bin"
+      delegate_to: "{{ active_host }}"
+      register: tower_file_on_active_stat
+
+    - name: Validate tower file exist
+      ansible.builtin.assert:
+        that:
+          - tower_file_on_active_stat.stat.exists
+        fail_msg: |
+          The tower file ({{ hostvars[active_host].ledger_path | default(ledger_path) }}/{{ tower_file_prefix }}-{{ hostvars[active_host].identity_pubkey }}.bin) not found on the active host.
+        quiet: true
+
+    - name: Check {{ identity_path }} exists on active host
+      become: true
+      become_user: "{{ service_user }}"
+      ansible.builtin.stat:
+        path: "{{ identity_path }}"
+      delegate_to: "{{ active_host }}"
+      register: identity_path_on_active_stat
+
+    - name: Check {{ identity_path }} exists on standby host
+      become: true
+      become_user: "{{ service_user }}"
+      ansible.builtin.stat:
+        path: "{{ identity_path }}"
+      delegate_to: "{{ standby_host }}"
+      register: identity_path_on_standby_stat
+
 - name: Point identity symlink to standby key on previous active host # noqa run-once[task]
   become: true
   become_user: "{{ service_user }}"
@@ -66,6 +98,7 @@
     force: true
   delegate_to: "{{ active_host }}"
   run_once: true
+  when: identity_path_on_active_stat.stat.islnk
 
 - name: Set identity to standby on active host # noqa run-once[task]
   ansible.builtin.command:
@@ -125,3 +158,4 @@
     force: true
   delegate_to: "{{ standby_host }}"
   run_once: true
+  when: identity_path_on_active_stat.stat.islnk
