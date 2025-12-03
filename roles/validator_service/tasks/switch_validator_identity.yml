@@ -13,33 +13,33 @@
 
     - name: Check standby identity file exists on standby host
       become: true
-      become_user: "{{ service_user }}"
+      become_user: "{{ hostvars[standby_host].service_user | default(service_user) }}"
       ansible.builtin.stat:
-        path: "{{ standy_identity_path }}"
+        path: "{{ hostvars[standby_host].standy_identity_path | default(standy_identity_path) }}"
       delegate_to: "{{ standby_host }}"
       register: standby_identity_stat
 
     - name: Check standby identity file exists on active host
       become: true
-      become_user: "{{ service_user }}"
+      become_user: "{{ hostvars[active_host].service_user | default(service_user) }}"
       ansible.builtin.stat:
-        path: "{{ standy_identity_path }}"
+        path: "{{ hostvars[active_host].standy_identity_path | default(standy_identity_path) }}"
       delegate_to: "{{ active_host }}"
       register: standby_identity_on_active_stat
 
     - name: Check active identity file exists on active host
       become: true
-      become_user: "{{ service_user }}"
+      become_user: "{{ hostvars[active_host].service_user | default(service_user) }}"
       ansible.builtin.stat:
-        path: "{{ active_identity_path }}"
+        path: "{{ hostvars[active_host].active_identity_path | default(active_identity_path) }}"
       delegate_to: "{{ active_host }}"
       register: active_identity_stat
 
     - name: Check active identity file exists on standby host
       become: true
-      become_user: "{{ service_user }}"
+      become_user: "{{ hostvars[standby_host].service_user | default(service_user) }}"
       ansible.builtin.stat:
-        path: "{{ active_identity_path }}"
+        path: "{{ hostvars[standby_host].active_identity_path | default(active_identity_path) }}"
       delegate_to: "{{ standby_host }}"
       register: active_identity_on_standby_stat
 
@@ -52,15 +52,15 @@
           - active_identity_on_standby_stat.stat.exists
         fail_msg: |
           Identity files not found on one or both hosts.
-          Standby host ({{ standby_host }}): {{ standy_identity_path }} exists? {{ standby_identity_stat.stat.exists | default(false) }}, {{ active_identity_path }} exists? {{ active_identity_on_standby_stat.stat.exists | default(false) }}
-          Active host ({{ active_host }}): {{ standy_identity_path }} exists? {{ standby_identity_on_active_stat.stat.exists | default(false) }}, {{ active_identity_path }} exists? {{ active_identity_stat.stat.exists | default(false) }}
+          Standby host ({{ standby_host }}): {{ hostvars[standby_host].standy_identity_path | default(standy_identity_path) }} exists? {{ standby_identity_stat.stat.exists | default(false) }}, {{ hostvars[standby_host].active_identity_path | default(active_identity_path) }} exists? {{ active_identity_on_standby_stat.stat.exists | default(false) }}
+          Active host ({{ active_host }}): {{ hostvars[active_host].standy_identity_path | default(standy_identity_path) }} exists? {{ standby_identity_on_active_stat.stat.exists | default(false) }}, {{ hostvars[active_host].active_identity_path | default(active_identity_path) }} exists? {{ active_identity_stat.stat.exists | default(false) }}
         quiet: true
 
     - name: Check tower file exists on active host
       become: true
-      become_user: "{{ service_user }}"
+      become_user: "{{ hostvars[active_host].service_user | default(service_user) }}"
       ansible.builtin.stat:
-        path: "{{ hostvars[active_host].ledger_path | default(ledger_path) }}/{{ tower_file_prefix }}-{{ hostvars[active_host].identity_pubkey }}.bin"
+        path: "{{ hostvars[active_host].ledger_path | default(ledger_path) }}/{{ hostvars[active_host].tower_file_prefix | default(tower_file_prefix) }}-{{ hostvars[active_host].identity_pubkey | default(identity_pubkey) }}.bin"
       delegate_to: "{{ active_host }}"
       register: tower_file_on_active_stat
 
@@ -69,40 +69,40 @@
         that:
           - tower_file_on_active_stat.stat.exists
         fail_msg: |
-          The tower file ({{ hostvars[active_host].ledger_path | default(ledger_path) }}/{{ tower_file_prefix }}-{{ hostvars[active_host].identity_pubkey }}.bin) not found on the active host.
+          The tower file ({{ hostvars[active_host].ledger_path | default(ledger_path) }}/{{ hostvars[active_host].tower_file_prefix | default(tower_file_prefix) }}-{{ hostvars[active_host].identity_pubkey | default(identity_pubkey) }}.bin) not found on the active host.
         quiet: true
 
-    - name: Check {{ identity_path }} exists on active host
+    - name: Check {{ hostvars[active_host].identity_path | default(identity_path) }} exists on active host
       become: true
-      become_user: "{{ service_user }}"
+      become_user: "{{ hostvars[active_host].service_user | default(service_user) }}"
       ansible.builtin.stat:
-        path: "{{ identity_path }}"
+        path: "{{ hostvars[active_host].identity_path | default(identity_path) }}"
       delegate_to: "{{ active_host }}"
       register: identity_path_on_active_stat
 
-    - name: Check {{ identity_path }} exists on standby host
+    - name: Check {{ hostvars[standby_host].identity_path | default(identity_path) }} exists on standby host
       become: true
-      become_user: "{{ service_user }}"
+      become_user: "{{ hostvars[standby_host].service_user | default(service_user) }}"
       ansible.builtin.stat:
-        path: "{{ identity_path }}"
+        path: "{{ hostvars[standby_host].identity_path | default(identity_path) }}"
       delegate_to: "{{ standby_host }}"
       register: identity_path_on_standby_stat
 
 - name: Point identity symlink to standby key on previous active host # noqa run-once[task]
   become: true
-  become_user: "{{ service_user }}"
+  become_user: "{{ hostvars[active_host].service_user | default(service_user) }}"
   ansible.builtin.file:
-    src: "{{ standy_identity_path }}"
-    dest: "{{ identity_path }}"
+    src: "{{ hostvars[active_host].standy_identity_path | default(standy_identity_path) }}"
+    dest: "{{ hostvars[active_host].identity_path | default(identity_path) }}"
     state: link
     force: true
   delegate_to: "{{ active_host }}"
   run_once: true
-  when: identity_path_on_active_stat.stat.islnk
+  when: identity_path_on_active_stat.stat.islnk is defined and identity_path_on_active_stat.stat.islnk
 
 - name: Set identity to standby on active host # noqa run-once[task]
   ansible.builtin.command:
-    cmd: "fdctl --config {{ firedancer_config_path }} set-identity {{ standy_identity_path }}"
+    cmd: "fdctl --config {{ hostvars[active_host].firedancer_config_path | default(firedancer_config_path) }} set-identity {{ hostvars[active_host].standy_identity_path | default(standy_identity_path) }}"
   delegate_to: "{{ active_host }}"
   changed_when: false
   run_once: true
@@ -110,8 +110,8 @@
 
 - name: Fetch tower file from {{ active_host }}
   ansible.posix.synchronize:
-    src: "{{ active_host }}:{{ hostvars[active_host].ledger_path | default(ledger_path) }}/{{ tower_file_prefix }}-{{ hostvars[active_host].identity_pubkey }}.bin"
-    dest: "./tmp_towerfiles/{{ tower_file_prefix }}-{{ hostvars[active_host].identity_pubkey }}.bin"
+    src: "{{ active_host }}:{{ hostvars[active_host].ledger_path | default(ledger_path) }}/{{ hostvars[active_host].tower_file_prefix | default(tower_file_prefix) }}-{{ hostvars[active_host].identity_pubkey | default(identity_pubkey) }}.bin"
+    dest: "./tmp_towerfiles/{{ hostvars[active_host].tower_file_prefix | default(tower_file_prefix) }}-{{ hostvars[active_host].identity_pubkey | default(identity_pubkey) }}.bin"
     mode: pull
     rsync_opts:
       - "--mkpath" # create target directory if missing, available in newer versions of rsync (3.2.0 and later)
@@ -130,19 +130,19 @@
 - name: Copy tower to standby host # noqa run-once[task]
   become: true
   ansible.builtin.copy:
-    src: "./tmp_towerfiles/{{ tower_file_prefix }}-{{ hostvars[active_host].identity_pubkey }}.bin"
-    dest: "{{ hostvars[active_host].ledger_path | default(ledger_path) }}/{{ tower_file_prefix }}-{{ hostvars[active_host].identity_pubkey }}.bin"
+    src: "./tmp_towerfiles/{{ hostvars[active_host].tower_file_prefix | default(tower_file_prefix) }}-{{ hostvars[active_host].identity_pubkey | default(identity_pubkey) }}.bin"
+    dest: "{{ hostvars[standby_host].ledger_path | default(ledger_path) }}/{{ hostvars[active_host].tower_file_prefix | default(tower_file_prefix) }}-{{ hostvars[active_host].identity_pubkey | default(identity_pubkey) }}.bin"
     mode: "0644"
-    owner: "{{ service_user }}"
-    group: "{{ service_user }}"
+    owner: "{{ hostvars[standby_host].service_user | default(service_user) }}"
+    group: "{{ hostvars[standby_host].service_user | default(service_user) }}"
   delegate_to: "{{ standby_host }}"
   run_once: true
 
 - name: Rotate standby identity to active on standby host # noqa run-once[task]
   become: true
-  become_user: "{{ service_user }}"
+  become_user: "{{ hostvars[standby_host].service_user | default(service_user) }}"
   ansible.builtin.command:
-    cmd: "fdctl --config {{ firedancer_config_path }} set-identity --require-tower {{ active_identity_path }}"
+    cmd: "fdctl --config {{ hostvars[standby_host].firedancer_config_path | default(firedancer_config_path) }} set-identity --require-tower {{ hostvars[standby_host].active_identity_path | default(active_identity_path) }}"
   delegate_to: "{{ standby_host }}"
   changed_when: false
   run_once: true
@@ -150,12 +150,12 @@
 
 - name: Point identity symlink to active key on new active host # noqa run-once[task]
   become: true
-  become_user: "{{ service_user }}"
+  become_user: "{{ hostvars[standby_host].service_user | default(service_user) }}"
   ansible.builtin.file:
-    src: "{{ active_identity_path }}"
-    dest: "{{ identity_path }}"
+    src: "{{ hostvars[standby_host].active_identity_path | default(active_identity_path) }}"
+    dest: "{{ hostvars[standby_host].identity_path | default(identity_path) }}"
     state: link
     force: true
   delegate_to: "{{ standby_host }}"
   run_once: true
-  when: identity_path_on_active_stat.stat.islnk
+  when: identity_path_on_active_stat.stat.islnk is defined and identity_path_on_active_stat.stat.islnk
