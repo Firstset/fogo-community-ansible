@@ -5,17 +5,24 @@ bootstrap_disks: false
 enable_cpu_performance_mode: true
 disable_swap: true
 service_user: fogo
-validator_client_version: v14.0.0
+validator_client_version: v19.0.1
 stage: testnet # either testnet or mainnet
 
-validator_client_tarfile_checksum: d5e3493a7192cbb3713f92870205c085b0fa163d
+validator_client_tarfile_checksum: f7033371dab0a73fcee0dafaf8c1aa12beb0b158
 firedancer_config_path: "/home/{{ service_user }}/firedancer-config.toml"
 # setting the log path to `-` means outputing logs to stdout
 # we use a file instead to avoid duplicating logs to syslog
 firedancer_log_path: "/home/{{ service_user }}/firedancer-validator.log"
 # if the logs are output to a file, we set up a daily log rotation
 firedancer_log_rotation_days: 7
-identity_path: "/home/{{ service_user }}/unstaked-identity.json"
+# it is recommended to create `identity.json` as a symlink file that points to the correct identity keypair
+identity_path: "/home/{{ service_user }}/identity.json"
+# staked validator identity keypair that can be used for hotswitching identities (using the set-identity API)
+active_identity_path: "/home/{{ service_user }}/validator-keypair.json"
+# a non-staked identity keypair that can be used for hotswitching identities (using the set-identity API)
+standy_identity_path: "/home/{{ service_user }}/unstaked-identity.json"
+# the prefix of a tower file's name
+tower_file_prefix: "tower-1_9"
 vote_account_path: ""
 firedancer_config_template_path: "firedancer_config_template_{{ stage }}.toml.j2"
 firedancer_systemd_template_path: "firedancer_systemd.j2"

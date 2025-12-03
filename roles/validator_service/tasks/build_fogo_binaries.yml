@@ -26,13 +26,29 @@
   tags:
     - update_binary
 
+- name: Inspect tarball top-level folder
+  become: true
+  become_user: "{{ service_user }}"
+  ansible.builtin.command: >
+    sh -c "tar -tf /tmp/fogo-{{ validator_client_version }}.tar.gz | head -n 5"
+  register: tar_list
+  changed_when: false
+  tags:
+    - update_binary
+
+- name: Determine top-level folder name
+  ansible.builtin.set_fact:
+    tarball_top_folder: "{{ tar_list.stdout_lines[0] | regex_replace('/.*', '') }}"
+  tags:
+    - update_binary
+
 - name: Extract the files from the tar file
   become: true
   become_user: "{{ service_user }}"
   ansible.builtin.unarchive:
     src: "/tmp/fogo-{{ validator_client_version }}.tar.gz"
     dest: "{{ temp_source_code_folder }}"
-    creates: "{{ temp_source_code_folder }}/fogo/deps.sh"
+    creates: "{{ temp_source_code_folder }}/{{ tarball_top_folder }}/deps.sh"
     owner: "{{ service_user }}"
     group: "{{ service_user }}"
     remote_src: true
@@ -58,7 +74,7 @@
   become_user: "{{ service_user }}"
   shell: yes y | ./deps.sh
   args:
-    chdir: "{{ temp_source_code_folder }}/fogo"
+    chdir: "{{ temp_source_code_folder }}/{{ tarball_top_folder }}"
   retries: 2
   delay: 5
   tags:
@@ -69,8 +85,8 @@
   become_user: "{{ service_user }}"
   shell: ". ~/.profile && make -j {{ fogo_binaries_to_build | join(' ') }}"
   args:
-    chdir: "{{ temp_source_code_folder }}/fogo"
-    creates: "{{ temp_source_code_folder }}/fogo/build/native/gcc/bin/{{ fogo_binaries_to_build[0] | default('fdctl') }}"
+    chdir: "{{ temp_source_code_folder }}/{{ tarball_top_folder }}"
+    creates: "{{ temp_source_code_folder }}/{{ tarball_top_folder }}/build/native/gcc/bin/{{ fogo_binaries_to_build[0] | default('fdctl') }}"
   register: make_result
   retries: 2
   until: make_result.rc == 0

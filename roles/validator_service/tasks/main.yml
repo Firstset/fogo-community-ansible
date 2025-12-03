@@ -78,11 +78,12 @@
     temp_binaries_folder: >-
       {{ '/tmp/ansible_fogo_artifacts'
          if fogo_binaries_build_mode == 'push'
-         else '/home/' ~ service_user ~ '/fogo-' ~ validator_client_version ~ '/fogo/build/native/gcc/bin' }}
+         else '/home/' ~ service_user ~ '/fogo-' ~ validator_client_version ~ '/' ~ tarball_top_folder ~ '/build/native/gcc/bin' }}
   tags:
     - update_binary
 
 - name: Generate firedancer config from the template
+  become: true
   template:
     src: "{{ firedancer_config_template_path }}"
     dest: "{{ firedancer_config_path }}"
@@ -97,6 +98,7 @@
 - name: Check the existence of the key files
   block:
     - name: Check if the identity keypair exists
+      become: true
       stat:
         path: "{{ identity_path }}"
       register: identity_keypair_stat
@@ -145,6 +147,7 @@
     - update_config
 
 - name: Enable and start fogo validator
+  become: true
   systemd_service:
     name: fogo-validator
     daemon_reload: true

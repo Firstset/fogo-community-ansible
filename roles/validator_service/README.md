@@ -105,6 +105,35 @@ Then run the following command to update the binaries in target hosts:
 ansible-playbook -i inventory/fogo.yml playbooks/fogo.yml --ask-become-pass -t update_binary -e "fogo_binaries_build_mode=push"
 ```
 
+### Switch Validator Identity at Runtime
+
+To further reduce the downtime of a validator during an upgrade, we can use Firedancer's `set-identity` API to switch the identity without restarting the service. Here are some important notes before using this feature:
+
+- Make sure both nodes have been fully synced before switching the identity.
+- On both nodes the validator identity keypair file must be present at the path specified by `active_identity_path` variable (default value `/home/{{ service_user }}/validator-keypair.json`).
+- On both nodes there should be a non-staked identity keypair which is used when the node is running as a fallback. The path is specified by `standy_identity_path` variable (default value `/home/{{ service_user }}/unstaked-identity.json`).
+- _[Optional]_ It is recommended to have a symbolic link file for `identity_path` (default value `/home/{{ service_user }}/identity.json`) that points to the expected identity keypair. In this way even the service gets restarted, it will still use the correct identity keypair because the identity updated by `set-identity` API is not persisted after a service restart. If `identity_path` is not a symbolic link, the playbook will skip the steps of updating the symlink to `active_identity_path` or `standy_identity_path`.
+
+Here is an example of the playbook:
+
+```yaml
+---
+- name: Switch validator identity between two nodes
+  # here hosts must be localhost and then specify the target hosts using `active_node` and `standby_node` variables
+  hosts: localhost
+  tasks:
+    - name: Move validator identity from active_node to standby_node
+      include_role:
+        name: firstset.fogo_community.validator_service
+        tasks_from: switch_validator_identity.yml
+```
+
+To execute the playbook, run the following command:
+
+```bash
+ansible-playbook -i <inventory_filepath>.yml <playbook_filepath>.yml --ask-become-pass -e "active_host=current-validator-node" -e "standby_host=current-fallback-node"
+```
+
 ### Update FOGO Firedancer Configuration
 
 The role already includes a FOGO firedancer config template that you can find in `templates/firedancer_config_template.toml.j2`. If you need to override the config, first create your own template file and set the variable `firedancer_config_template_path` to point to your custom template. For example:
