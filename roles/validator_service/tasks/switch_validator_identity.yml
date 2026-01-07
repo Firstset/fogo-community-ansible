@@ -101,6 +101,8 @@
   when: identity_path_on_active_stat.stat.islnk is defined and identity_path_on_active_stat.stat.islnk
 
 - name: Set identity to standby on active host # noqa run-once[task]
+  become: true
+  become_user: "{{ hostvars[standby_host].service_user | default(service_user) }}"
   ansible.builtin.command:
     cmd: "fdctl --config {{ hostvars[active_host].firedancer_config_path | default(firedancer_config_path) }} set-identity {{ hostvars[active_host].standy_identity_path | default(standy_identity_path) }}"
   delegate_to: "{{ active_host }}"
