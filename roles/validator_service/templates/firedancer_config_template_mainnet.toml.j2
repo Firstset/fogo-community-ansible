@@ -6,7 +6,7 @@ dynamic_port_range = "{{ firedancer_dynamic_port_range }}"
 [gossip]
 host = "" # Validators don't need to advertise their endpoints
 port_check = true # This ensures your firewall is set up correctly
-port = 8001
+port = {{ firedancer_gossip_port }}
 
 # Entrypoint
 entrypoints = [] # Set to any valid mainnet entrypoint

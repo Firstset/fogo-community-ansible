@@ -3,6 +3,28 @@
   vars:
     temp_source_code_folder: "/home/{{ service_user }}/fogo-{{ validator_client_version }}"
 
+- name: Inspect tarball top-level folder
+  become: true
+  become_user: "{{ service_user }}"
+  ansible.builtin.command: >
+    sh -c "tar -tf /tmp/fogo-{{ validator_client_version }}.tar.gz | head -n 5"
+  register: tar_list
+  changed_when: false
+  tags:
+    # the tag `never` is used here because the same task is included in build_fogo_binaries.yml
+    # this combo makes the task executed only when tag `fetch_only` is specified
+    - never
+    - fetch_only
+
+- name: Determine top-level folder name
+  ansible.builtin.set_fact:
+    tarball_top_folder: "{{ tar_list.stdout_lines[0] | regex_replace('/.*', '') }}"
+  tags:
+    # the tag `never` is used here because the same task is included in build_fogo_binaries.yml
+    # this combo makes the task executed only when tag `fetch_only` is specified
+    - never
+    - fetch_only
+
 - name: Remove temporary artifacts folder in {{ inventory_hostname }} if it exists
   become: true
   become_user: "{{ service_user }}"
