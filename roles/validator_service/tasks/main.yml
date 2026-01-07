@@ -117,6 +117,8 @@
     src: "{{ firedancer_systemd_template_path }}"
     dest: "/etc/systemd/system/fogo-validator.service"
     mode: "0644"
+  notify:
+    - Restart fogo validator service
   tags:
     - update_config
 
